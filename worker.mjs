@@ -9,6 +9,7 @@ export default {
   async fetch(request, env) {
     const path = new URL(request.url).pathname;
     if (path === "/healthz" && request.method === "GET") return reply(204);
+    if (path === "/events" && request.method === "GET") return events(request, env);
     if (path !== "/ingest") return reply(404);
     if (request.method !== "POST") return reply(405);
     if (!env.INGEST_TOKEN) return reply(503);
@@ -56,3 +57,39 @@ export default {
     return reply(204);
   }
 };
+
+function sample(prefix, value, low, high) {
+  const bin = Math.floor(10 * Math.max(0, Math.min(1, (value - low) / (high - low))));
+  return prefix + String(bin).padStart(2, "0");
+}
+
+async function events(request, env) {
+  const after = new URL(request.url).searchParams.get("after");
+  const headers = { "Cache-Control": "no-store" };
+  try {
+    if (after === null) {
+      const cursor = await env.DB.prepare("SELECT COALESCE(MAX(seq), 0) AS cursor FROM events").first("cursor");
+      return Response.json({ cursor, events: [] }, { headers });
+    }
+    if (!/^\d+$/.test(after) || !Number.isSafeInteger(Number(after))) return reply(400);
+    const { results } = await env.DB.prepare(
+      "SELECT seq, payload FROM events WHERE seq > ? ORDER BY seq LIMIT 64"
+    ).bind(Number(after)).all();
+    const events = [];
+    for (const row of results) {
+      const event = JSON.parse(row.payload);
+      if (event.event.startsWith("setup-test-") || event.event.startsWith("load-test-")) continue;
+      const samples = [];
+      for (const key of metrics) {
+        const value = event.body[key];
+        if (!Number.isFinite(value) || value < 0) continue;
+        // Use the original common 20–50 CPM range as a starting point for Radnote.
+        samples.push(key === "cpm" ? sample("rad", value, 20, 50) : sample("air", value, 0, 10));
+      }
+      if (samples.length) events.push(samples);
+    }
+    return Response.json({ cursor: results.at(-1)?.seq ?? Number(after), events }, { headers });
+  } catch {
+    return reply(503);
+  }
+}

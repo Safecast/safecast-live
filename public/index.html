@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Safecast Live</title>
+<style>
+  :root { color-scheme: dark; }
+  body { margin: 0; background: #121612; color: #e3ebe0; font: 1rem system-ui; }
+  main { max-width: 40rem; margin: 12vh auto; padding: 1.5rem; }
+  h1 { font-size: clamp(2.5rem, 9vw, 5rem); margin: 0; }
+  button, select { font: inherit; padding: .5rem; }
+  label { display: inline-block; margin: .5rem; }
+  #status { color: #b5cbb0; }
+  a { color: inherit; }
+</style>
+<script type="module" src="/player.mjs"></script>
+</head>
+<body>
+<main>
+<h1>Safecast Live</h1>
+<p>Live radiation and air quality readings trigger sounds as they arrive.</p>
+<button id="play">Listen</button>
+<label>Sound pack <select id="pack">
+<option value="buchla">Buchla Easel</option>
+<option value="sean">Michelsonne</option>
+<option value="NIN">NIN: Ghosts</option>
+<option value="polivox">Polivox</option>
+</select></label>
+<label>Volume <input id="volume" type="range" min="0" max="1" step=".01" value=".35"></label>
+<p id="status" role="status">Paused</p>
+<p><a href="https://safecast.org/safecast-live/">About the original project</a></p>
+</main>
+</body>
+</html>
