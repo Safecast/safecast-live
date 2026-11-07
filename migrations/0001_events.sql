@@ -1,0 +1,6 @@
+CREATE TABLE IF NOT EXISTS events (
+  seq INTEGER PRIMARY KEY,
+  event_id TEXT NOT NULL UNIQUE,
+  accepted_at INTEGER NOT NULL,
+  payload TEXT NOT NULL
+);

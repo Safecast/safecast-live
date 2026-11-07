@@ -1,0 +1,8 @@
+name = "safecast-live"
+main = "worker.mjs"
+compatibility_date = "2026-11-07"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# Before deploying, add a D1 binding named DB and apply migrations/0001_events.sql.
+# Set INGEST_TOKEN as a Worker secret.
