@@ -30,8 +30,14 @@
 </select></label>
 <label>Volume <input id="volume" type="range" min="0" max="1" step=".01" value=".35"></label>
 <div aria-label="Effects" role="group">
-<label>Reverb <input id="reverb" type="range" min="0" max="1" step=".01" value="0"></label>
-<label>Echo <input id="echo" type="range" min="0" max="1" step=".01" value="0"></label>
+<label>Reverb <input id="reverb" type="range" min="0" max="1" step=".01" value="1"></label>
+<label>Echo <input id="echo" type="range" min="0" max="1" step=".01" value=".5"></label>
+<label>Effects routing <select id="routing">
+<option value="parallel">Parallel</option>
+<option value="echo-reverb">Echo → Reverb</option>
+<option value="reverb-echo">Reverb → Echo</option>
+</select></label>
+<label><input id="kill-dry" type="checkbox"> Kill Dry</label>
 </div>
 <p id="status" role="status">Paused</p>
 <p><a href="https://safecast.org/safecast-live/">About the original project</a></p>
