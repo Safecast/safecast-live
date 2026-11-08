@@ -5,6 +5,10 @@ const reverb = document.querySelector("#reverb");
 const echo = document.querySelector("#echo");
 const routing = document.querySelector("#routing");
 const killDry = document.querySelector("#kill-dry");
+const captureLoop = document.querySelector("#capture-loop");
+const loopLevel = document.querySelector("#loop-level");
+const clearLoop = document.querySelector("#clear-loop");
+const loopSeconds = 15;
 const status = document.querySelector("#status");
 const ids = ["rad", "air"].flatMap((type) =>
   Array.from({ length: 11 }, (_, index) => type + String(index).padStart(2, "0")));
@@ -105,8 +109,79 @@ async function readEvents(after, signal) {
   return response.json();
 }
 
+function clearLayer() {
+  const layer = session?.layer;
+  if (!layer) return;
+  clearInterval(layer.timer);
+  for (const source of layer.voices) source.stop();
+  layer.gain.disconnect();
+  session.layer = undefined;
+  clearLoop.disabled = true;
+}
+
+function recentSounds(active, now) {
+  active.history = active.history.filter(({ time }) => time >= now - loopSeconds);
+  captureLoop.disabled = active.history.length === 0;
+}
+
+captureLoop.onclick = () => {
+  const active = session;
+  if (!active) return;
+  const now = context.currentTime;
+  recentSounds(active, now);
+  if (active.history.length === 0) return;
+
+  clearLayer();
+  const score = active.history.map(({ pack, id, buffer, time }) => ({
+    pack, id, buffer, offset: time - (now - loopSeconds)
+  }));
+  const layer = { gain: context.createGain(), voices: new Set() };
+  layer.gain.gain.value = Number(loopLevel.value);
+  layer.gain.connect(active.effects.input);
+  active.layer = layer;
+  clearLoop.disabled = false;
+
+  const start = now + 0.1;
+  let cycle = 0;
+  let note = 0;
+  function schedule() {
+    const now = context.currentTime;
+    const currentCycle = Math.max(0, Math.floor((now - start) / loopSeconds));
+    if (cycle < currentCycle) {
+      cycle = currentCycle;
+      note = 0;
+    }
+    while (true) {
+      const { buffer, offset } = score[note];
+      const when = start + cycle * loopSeconds + offset;
+      if (when > now + 0.25) return;
+      if (when >= now) {
+        const source = context.createBufferSource();
+        source.buffer = buffer;
+        source.connect(layer.gain);
+        layer.voices.add(source);
+        source.onended = () => layer.voices.delete(source);
+        source.start(when);
+      }
+      note++;
+      if (note === score.length) {
+        note = 0;
+        cycle++;
+      }
+    }
+  }
+  schedule();
+  layer.timer = setInterval(schedule, 100);
+};
+
+clearLoop.onclick = clearLayer;
+loopLevel.oninput = () => {
+  session?.layer?.gain.gain.setTargetAtTime(Number(loopLevel.value), context.currentTime, 0.03);
+};
+
 function stop() {
   if (session) {
+    clearLayer();
     session.controller.abort();
     clearTimeout(session.timer);
     for (const source of session.voices) source.stop();
@@ -114,13 +189,14 @@ function stop() {
     session = undefined;
     if (navigator.audioSession) navigator.audioSession.type = "auto";
   }
+  captureLoop.disabled = true;
   play.textContent = "Listen";
   status.textContent = "Paused";
 }
 
 async function start() {
   stop();
-  const active = { controller: new AbortController(), voices: new Set() };
+  const active = { controller: new AbortController(), voices: new Set(), history: [] };
   const { signal } = active.controller;
   session = active;
   play.textContent = "Pause";
@@ -177,12 +253,14 @@ async function start() {
       for (const id of batch.events.flat().slice(-16)) {
         if (active.voices.size >= 24) break;
         const source = context.createBufferSource();
-        const buffers = packs[Math.floor(Math.random() * packs.length)];
-        source.buffer = buffers.get(id);
+        const index = Math.floor(Math.random() * packs.length);
+        source.buffer = packs[index].get(id);
         source.connect(active.effects.input);
         active.voices.add(source);
         source.onended = () => active.voices.delete(source);
-        source.start();
+        const time = context.currentTime;
+        source.start(time);
+        active.history.push({ pack: names[index], id, buffer: source.buffer, time });
         triggered++;
       }
       status.textContent = triggered
@@ -193,6 +271,7 @@ async function start() {
       cursor = null;
       status.textContent = "Feed interrupted · reconnecting";
     }
+    recentSounds(active, context.currentTime);
     active.timer = setTimeout(poll, 2500);
   }
   void poll();
