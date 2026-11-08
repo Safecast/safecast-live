@@ -186,7 +186,7 @@ async function start() {
         triggered++;
       }
       status.textContent = triggered
-        ? `Live · ${triggered} sound${triggered === 1 ? "" : "s"} triggered`
+        ? `Live · ${triggered} measurement${triggered === 1 ? "" : "s"} observed`
         : "Live · waiting for readings";
     } catch {
       if (signal.aborted) return;
