@@ -41,7 +41,10 @@ async function start() {
   session = active;
   play.textContent = "Pause";
   status.textContent = "Loading sound pack…";
-  let buffers;
+  const names = pack.value === "all"
+    ? Array.from(pack.options, (option) => option.value).filter((name) => name !== "all")
+    : [pack.value];
+  let packs;
   try {
     context ??= new AudioContext();
     if (!gain) {
@@ -50,7 +53,7 @@ async function start() {
     }
     gain.gain.value = Number(volume.value);
     await context.resume();
-    buffers = await loadPack(pack.value, signal);
+    packs = await Promise.all(names.map((name) => loadPack(name, signal)));
   } catch {
     if (signal.aborted) return;
     stop();
@@ -67,6 +70,7 @@ async function start() {
       for (const id of batch.events.flat().slice(-16)) {
         if (active.voices.size >= 24) break;
         const source = context.createBufferSource();
+        const buffers = packs[Math.floor(Math.random() * packs.length)];
         source.buffer = buffers.get(id);
         source.connect(gain);
         active.voices.add(source);
