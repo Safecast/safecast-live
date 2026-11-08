@@ -112,6 +112,7 @@ function stop() {
     for (const source of session.voices) source.stop();
     session.effects?.disconnect();
     session = undefined;
+    if (navigator.audioSession) navigator.audioSession.type = "auto";
   }
   play.textContent = "Listen";
   status.textContent = "Paused";
@@ -129,6 +130,7 @@ async function start() {
     : [pack.value];
   try {
     const AudioContextClass = window.AudioContext ?? window.webkitAudioContext;
+    if (navigator.audioSession) navigator.audioSession.type = "playback";
     context ??= new AudioContextClass();
     await resumeAudio();
     if (signal.aborted) return;
@@ -160,6 +162,7 @@ async function start() {
     return;
   }
   let cursor = null;
+  let triggered = 0;
   async function poll() {
     if (signal.aborted) return;
     if (context.state !== "running") {
@@ -180,8 +183,11 @@ async function start() {
         active.voices.add(source);
         source.onended = () => active.voices.delete(source);
         source.start();
+        triggered++;
       }
-      status.textContent = "Live · waiting for readings";
+      status.textContent = triggered
+        ? `Live · ${triggered} sound${triggered === 1 ? "" : "s"} triggered`
+        : "Live · waiting for readings";
     } catch {
       if (signal.aborted) return;
       cursor = null;
