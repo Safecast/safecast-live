@@ -3,6 +3,8 @@ const pack = document.querySelector("#pack");
 const volume = document.querySelector("#volume");
 const reverb = document.querySelector("#reverb");
 const echo = document.querySelector("#echo");
+const routing = document.querySelector("#routing");
+const killDry = document.querySelector("#kill-dry");
 const status = document.querySelector("#status");
 const ids = ["rad", "air"].flatMap((type) =>
   Array.from({ length: 11 }, (_, index) => type + String(index).padStart(2, "0")));
@@ -13,6 +15,7 @@ let impulse;
 
 function createEffects() {
   const input = context.createGain();
+  const dry = context.createGain();
   const room = context.createConvolver();
   const reverbLevel = context.createGain();
   const delay = context.createDelay();
@@ -36,17 +39,31 @@ function createEffects() {
   reverbLevel.gain.value = Number(reverb.value) * 0.6;
   echoLevel.gain.value = Number(echo.value) * 0.45;
 
-  input.connect(gain);
+  dry.gain.value = killDry.checked ? 0 : 1;
+  input.connect(dry).connect(gain);
   input.connect(room).connect(reverbLevel).connect(gain);
   input.connect(delay).connect(echoLevel).connect(gain);
   delay.connect(feedback).connect(delay);
 
+  let route;
+  function setRouting() {
+    if (route === "echo-reverb") echoLevel.disconnect(room);
+    if (route === "reverb-echo") reverbLevel.disconnect(delay);
+
+    route = routing.value;
+    if (route === "echo-reverb") echoLevel.connect(room);
+    if (route === "reverb-echo") reverbLevel.connect(delay);
+  }
+  setRouting();
+
   return {
     input,
+    dry,
+    setRouting,
     reverbLevel,
     echoLevel,
     disconnect() {
-      for (const node of [input, room, reverbLevel, delay, feedback, echoLevel]) {
+      for (const node of [input, dry, room, reverbLevel, delay, feedback, echoLevel]) {
         node.disconnect();
       }
     }
@@ -144,4 +161,9 @@ reverb.oninput = () => {
 };
 echo.oninput = () => {
   session?.effects?.echoLevel.gain.setTargetAtTime(Number(echo.value) * 0.45, context.currentTime, 0.03);
+};
+
+routing.onchange = () => session?.effects?.setRouting();
+killDry.onchange = () => {
+  session?.effects?.dry.gain.setTargetAtTime(killDry.checked ? 0 : 1, context.currentTime, 0.01);
 };
