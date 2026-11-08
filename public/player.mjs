@@ -70,13 +70,33 @@ function createEffects() {
   };
 }
 
-async function loadPack(name, signal) {
-  const entries = await Promise.all(ids.map(async (id) => {
-    const response = await fetch(`/audio/${name}/${id}.mp3`, { signal });
-    if (!response.ok) throw new Error("Missing audio sample");
-    return [id, await context.decodeAudioData(await response.arrayBuffer())];
-  }));
-  return new Map(entries);
+async function loadPacks(names, signal, audioContext) {
+  const packs = names.map(() => new Map());
+  const samples = names.flatMap((name, index) => ids.map((id) => ({ name, index, id })));
+  for (let offset = 0; offset < samples.length; offset += 6) {
+    if (signal.aborted) throw signal.reason;
+    await Promise.all(samples.slice(offset, offset + 6).map(async ({ name, index, id }) => {
+      const response = await fetch(`/audio/${name}/${id}.mp3`, { signal });
+      if (!response.ok) throw new Error("Missing audio sample");
+      packs[index].set(id, await audioContext.decodeAudioData(await response.arrayBuffer()));
+    }));
+  }
+  return packs;
+}
+
+async function resumeAudio() {
+  let timeout;
+  try {
+    await Promise.race([
+      context.resume(),
+      new Promise((_, reject) => {
+        timeout = setTimeout(() => reject(new Error("Audio startup timed out")), 4000);
+      })
+    ]);
+    if (context.state !== "running") throw new Error("Audio is not running");
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 async function readEvents(after, signal) {
@@ -107,17 +127,32 @@ async function start() {
   const names = pack.value === "all"
     ? Array.from(pack.options, (option) => option.value).filter((name) => name !== "all")
     : [pack.value];
+  try {
+    const AudioContextClass = window.AudioContext ?? window.webkitAudioContext;
+    context ??= new AudioContextClass();
+    await resumeAudio();
+    if (signal.aborted) return;
+  } catch {
+    if (signal.aborted) return;
+    stop();
+    if (context) void context.close().catch(() => {});
+    context = undefined;
+    gain = undefined;
+    impulse = undefined;
+    status.textContent = "Could not start browser audio. Tap Listen to retry.";
+    return;
+  }
+
   let packs;
   try {
-    context ??= new AudioContext();
     if (!gain) {
       gain = context.createGain();
       gain.connect(context.destination);
     }
     gain.gain.value = Number(volume.value);
     active.effects = createEffects();
-    await context.resume();
-    packs = await Promise.all(names.map((name) => loadPack(name, signal)));
+    packs = await loadPacks(names, signal, context);
+    if (signal.aborted) return;
   } catch {
     if (signal.aborted) return;
     stop();
@@ -127,6 +162,11 @@ async function start() {
   let cursor = null;
   async function poll() {
     if (signal.aborted) return;
+    if (context.state !== "running") {
+      stop();
+      status.textContent = "Browser audio interrupted. Tap Listen to resume.";
+      return;
+    }
     try {
       const batch = await readEvents(cursor, signal);
       if (signal.aborted) return;
