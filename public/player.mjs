@@ -24,7 +24,7 @@ function createEffects() {
   const dry = context.createGain();
   const wet = context.createGain();
   wet.connect(gain);
-  wet.gain.value = 1 - level(mix);
+  wet.gain.value = level(mix);
   const room = context.createConvolver();
   const reverbLevel = context.createGain();
   const delay = context.createDelay();
@@ -48,7 +48,7 @@ function createEffects() {
   reverbLevel.gain.value = level(reverb) * 0.6;
   echoLevel.gain.value = level(echo) * 0.45;
 
-  dry.gain.value = level(mix);
+  dry.gain.value = 1 - level(mix);
   input.connect(dry).connect(gain);
   input.connect(room).connect(reverbLevel).connect(wet);
   input.connect(delay).connect(echoLevel).connect(wet);
@@ -299,26 +299,36 @@ echo.oninput = () => {
 function selected(group) {
   return group.querySelector('[aria-pressed="true"]').dataset.value;
 }
-for (const group of [pack, routing, document.querySelector('[aria-label="Project details"]')]) {
+for (const group of [pack, routing]) {
   const buttons = [...group.querySelectorAll("button")];
-  buttons.forEach((button, index) => button.onclick = () => {
-    if (button.getAttribute("aria-pressed") === "true") return;
-    buttons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
-    if (group === pack && session) void start();
-    if (group === routing) session?.effects?.setRouting();
-    group.parentElement.querySelectorAll(".plate-copy > .plate-panel")
-      .forEach((panel, i) => { panel.hidden = i !== index; });
-  });
+  for (const button of buttons) {
+    button.onclick = () => {
+      if (button.getAttribute("aria-pressed") === "true") return;
+      buttons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+      if (group === pack && session) void start();
+      if (group === routing) session?.effects?.setRouting();
+    };
+  }
 }
+
 for (const input of document.querySelectorAll(".dial input")) {
-  input.addEventListener("input", () => {
-    const dial = input.closest(".dial");
-    dial.querySelector(".wheel").style.setProperty("--angle", (input.value * 2.7 - 135) + "deg");
-    dial.querySelector("output").value = input.value.padStart(3, "0");
-  });
+  const dial = input.closest(".dial");
+  const glyphs = dial.querySelector(".glyphs");
+  const output = dial.querySelector("output");
+  function renderSlider() {
+    const position = Math.round(Number(input.value) / 10);
+    glyphs.textContent = Array.from({ length: 11 }, (_, index) =>
+      index === 10 - position ? "[x]" : " | "
+    ).join("\n");
+    output.value = input.value.padStart(3, "0");
+  }
+  input.addEventListener("input", renderSlider);
+  renderSlider();
 }
+
 mix.oninput = () => {
-  mix.setAttribute("aria-valuetext", (100 - Number(mix.value)) + "% wet, " + mix.value + "% dry");
-  session?.effects?.dry.gain.setTargetAtTime(level(mix), context.currentTime, 0.01);
-  session?.effects?.wet.gain.setTargetAtTime(1 - level(mix), context.currentTime, 0.01);
+  const wet = level(mix);
+  mix.setAttribute("aria-valuetext", mix.value + "% wet, " + (100 - Number(mix.value)) + "% dry");
+  session?.effects?.dry.gain.setTargetAtTime(1 - wet, context.currentTime, 0.01);
+  session?.effects?.wet.gain.setTargetAtTime(wet, context.currentTime, 0.01);
 };

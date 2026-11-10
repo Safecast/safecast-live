@@ -1,198 +1,59 @@
-<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safecast Live v2.0</title><style>body{margin:0;background:#080808;padding:12px}</style></head><body><div id="sc-layouts"><section class="sc-layout field centered plate"><header><strong class="nameplate"><span>Safecast Live</span><span>v2.0</span></strong><div class="switches transport"><button type="button" id="play">Play</button><button type="button" aria-pressed="true" data-view="overlay"><span>OVERLAY</span></button><button type="button" aria-pressed="false" data-view="sheet"><span>CONTACT SHEET</span></button></div></header><div class="scope"><div class="art"><canvas width="144" height="144" aria-label="Layered grayscale aerial photographs"></canvas><b class="gps">Waiting for location</b><ol class="sheet" hidden></ol></div></div><div class="assembly"><div class="deck"><div><div class="choice"><div class="switches pack-options" role="group" aria-label="Sound pack"><button type="button" aria-pressed="true" data-value="all">Everything</button><button type="button" aria-pressed="false" data-value="buchla">Buchla</button><button type="button" aria-pressed="false" data-value="sean">Michelsonne</button><button type="button" aria-pressed="false" data-value="NIN">Ghosts I-IV</button><button type="button" aria-pressed="false" data-value="polivox">Polivox</button></div></div></div><div class="knobs"><label class="dial"><span>VOL</span><span class="wheel" style="--angle:-35.1deg"><i></i></span><input type="range" id="volume" value="50"><output>050</output></label><label class="dial"><span>REVERB</span><span class="wheel" style="--angle:135.0deg"><i></i></span><input type="range" id="reverb" value="100"><output>100</output></label><label class="dial"><span>ECHO</span><span class="wheel" style="--angle:0.0deg"><i></i></span><input type="range" id="echo" value="71"><output>071</output></label><label class="dial"><span>WET/DRY</span><span class="wheel" style="--angle:0deg"><i></i></span><input type="range" id="mix" value="37" aria-label="Wet/dry mix" aria-valuetext="63% wet, 37% dry" data-mix><output>037</output></label><label class="dial"><span>Loop Vol</span><span class="wheel" style="--angle:-40.5deg"><i></i></span><input type="range" id="loop-level" value="35"><output>035</output></label><div class="switches loop-actions"><button type="button" id="capture-loop" disabled>Capture Loop</button><button type="button" id="clear-loop" disabled>Clear Loop</button></div></div><div><div class="choice"><div class="switches" role="group" aria-label="Effects order"><button type="button" aria-pressed="false" data-value="echo-reverb">Echo &gt; Reverb</button><button type="button" aria-pressed="true" data-value="reverb-echo">Reverb &gt; Echo</button><button type="button" aria-pressed="false" data-value="parallel">Parallel</button></div></div></div></div><p id="status" role="status">Paused</p><div class="readouts"><!-- Keep the player’s legacy group selector available while both panels are displayed. --><div aria-label="Project details" hidden></div><div class="plate-copy"><div class="plate-panel"><h2>Information</h2>
-<span><strong>An entirely random, environmental, generative soundscape.</strong></span>
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safecast Live v2.0</title>
+<style>
+body{margin:0;background:#0b0b0a}
+#sc-terminal{max-width:1200px;margin:auto}
+#sc-terminal #status{text-transform:lowercase}
+#sc-terminal .terminal{box-sizing:border-box;background:#0b0b0a;color:#c8c8be;font:14px/1.55 "Courier New",Courier,monospace;padding:24px clamp(12px,3vw,32px);color-scheme:dark}
+#sc-terminal .terminal [hidden]{display:none!important}
+#sc-terminal header,#sc-terminal .switches,#sc-terminal .knobs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px}
+#sc-terminal header{justify-content:space-between;margin:0 0 14px}
+#sc-terminal h1,#sc-terminal h2{font:inherit;margin:0 0 8px;font-weight:700}
+#sc-terminal h1{margin:0}
+#sc-terminal .safecast-mark{display:inline-block;width:18px;height:18px;object-fit:contain;vertical-align:middle;margin-inline-end:8px}
+#sc-terminal .terminal :where(a,output,label,strong,small){font-family:inherit}
+#sc-terminal .plate-panel strong{font-weight:700}
+#sc-terminal small{font:inherit;font-weight:normal}
+#sc-terminal button,#sc-terminal a{color:inherit;text-decoration:underline;text-underline-offset:3px}
+#sc-terminal button{font:inherit;background:none;border:0;border-radius:0;padding:1px 3px;text-transform:lowercase}
+#sc-terminal button[aria-pressed=true]{background:#d1d1c6;color:#0b0b0a;text-decoration:none}
+#sc-terminal button:disabled{opacity:.5}
+#sc-terminal button:focus-visible,#sc-terminal a:focus-visible{outline:1px solid currentColor;outline-offset:3px}
+#sc-terminal .art{aspect-ratio:3/2;position:relative;overflow:hidden;display:grid;place-items:center}
+#sc-terminal canvas{display:block;width:100%;height:100%;min-height:0;object-fit:cover;image-rendering:pixelated}
+#sc-terminal .gps{position:absolute;color:#e0e0d8!important;text-shadow:1px 1px 3px #000;font:inherit}
+#sc-terminal .sheet{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px;padding:0;margin:0;list-style:none}
+#sc-terminal .sheet li{position:relative;min-width:0;min-height:0}
+#sc-terminal .sheet img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+#sc-terminal .sheet span{position:absolute;inset:auto 4px 4px;font-size:clamp(11px,1.4vw,14px);line-height:1.2;color:#fff;text-shadow:1px 1px 2px #000,0 0 4px #000;text-transform:lowercase}
+#sc-terminal .deck{margin-top:20px}
+#sc-terminal .knobs{margin:16px 0;display:grid;grid-template-columns:1fr;align-items:start;gap:6px}
+#sc-terminal .dial{display:grid;grid-template-columns:8ch 15ch 3ch;align-items:center;gap:1ch;width:max-content;text-transform:lowercase}
+#sc-terminal .track{position:relative;display:grid;align-items:center;justify-items:center;min-height:30px}
+#sc-terminal .glyphs{white-space:pre;line-height:1}
+#sc-terminal input[type=range]{position:absolute;inset:0;margin:0;width:100%;height:100%;opacity:0;cursor:ew-resize}
+#sc-terminal .track:focus-within{outline:1px solid currentColor}
+#sc-terminal [data-variant="Vertical sliders"] .knobs{display:flex;align-items:start}
+#sc-terminal [data-variant="Vertical sliders"] .dial{display:flex;flex-direction:column;gap:6px;min-width:6ch}
+#sc-terminal [data-variant="Vertical sliders"] .track{width:100%;min-height:166px}
+#sc-terminal [data-variant="Vertical sliders"] input{writing-mode:vertical-lr;direction:rtl;cursor:ns-resize}
+#sc-terminal .status{margin:12px 0 25px}
+#sc-terminal .plate-copy{display:grid;grid-template-columns:1.35fr 1fr;gap:28px}
+#sc-terminal .plate-panel span{display:block;text-transform:lowercase;margin-bottom:8px}
+#sc-terminal .readouts>.plate-panel{margin-top:20px}
+@media(max-width:580px){#sc-terminal .plate-copy{grid-template-columns:1fr;gap:12px}#sc-terminal .sheet span{font-size:11px}}
+
+</style></head><body><div id="sc-terminal">
+<section data-variant="Vertical sliders"><section class="terminal"><header><h1><img class="safecast-mark" src="data:image/png;base64,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" alt="" width="18" height="18">SAFECAST LIVE <small>v2.0</small></h1><div class="switches transport"><button type="button" id="play">Play</button><button type="button" aria-pressed="true" data-view="overlay"><span>OVERLAY</span></button><button type="button" aria-pressed="false" data-view="sheet"><span>CONTACT SHEET</span></button></div></header><div class="scope"><div class="art"><canvas width="144" height="144" aria-label="Layered grayscale aerial photographs"></canvas><b class="gps">Waiting for location</b><ol class="sheet" hidden></ol></div></div><div class="assembly"><div class="deck"><div><div class="choice"><div class="switches pack-options" role="group" aria-label="Sound pack"><button type="button" aria-pressed="true" data-value="all">Everything</button><button type="button" aria-pressed="false" data-value="buchla">Buchla</button><button type="button" aria-pressed="false" data-value="sean">Michelsonne</button><button type="button" aria-pressed="false" data-value="NIN">Ghosts I-IV</button><button type="button" aria-pressed="false" data-value="polivox">Polivox</button></div></div></div><div class="knobs"><label class="dial"><span>VOL</span><span class="track"><span class="glyphs" aria-hidden="true"></span><input type="range" aria-orientation="vertical" id="volume" value="50"></span><output>050</output></label><label class="dial"><span>REVERB</span><span class="track"><span class="glyphs" aria-hidden="true"></span><input type="range" aria-orientation="vertical" id="reverb" value="100"></span><output>100</output></label><label class="dial"><span>ECHO</span><span class="track"><span class="glyphs" aria-hidden="true"></span><input type="range" aria-orientation="vertical" id="echo" value="71"></span><output>071</output></label><label class="dial"><span>WET/DRY</span><span class="track"><span class="glyphs" aria-hidden="true"></span><input type="range" aria-orientation="vertical" id="mix" value="63" aria-label="Wet/dry mix" aria-valuetext="63% wet, 37% dry" data-mix></span><output>063</output></label><label class="dial"><span>Loop Vol</span><span class="track"><span class="glyphs" aria-hidden="true"></span><input type="range" aria-orientation="vertical" id="loop-level" value="35"></span><output>035</output></label><div class="switches loop-actions"><button type="button" id="capture-loop" disabled>Capture Loop</button><button type="button" id="clear-loop" disabled>Clear Loop</button></div></div><div><div class="choice"><div class="switches" role="group" aria-label="Effects order"><button type="button" aria-pressed="false" data-value="echo-reverb">Echo &gt; Reverb</button><button type="button" aria-pressed="true" data-value="reverb-echo">Reverb &gt; Echo</button><button type="button" aria-pressed="false" data-value="parallel">Parallel</button></div></div></div></div><p class="status" id="status" role="status">paused</p><div class="readouts"><div class="plate-copy"><div class="plate-panel"><h2>INFORMATION</h2>
+<span>An entirely random, environmental, generative soundscape.</span>
 <span class="credit-start">This work is driven by a global, real time network of radiation and air quality sensors. As data is received, readings are mapped to specific samples. Ranges have different tonal markers and it's possible to recognize higher or lower measurements by sound alone. GPS maps to the specific location of the sensor, imagery however is representative of the general area because it looks better in this artistic context.</span>
 <span class="versions">2026 - v2.0<br>2021 - <a href="https://safecast.org/safecast-live/">v1.0</a> (deprecated)</span>
-</div><div class="plate-panel"><h2>Credits</h2>
+</div><div class="plate-panel"><h2>CREDITS</h2>
 <span>By: <a href="https://seanbonner.com/">Sean Bonner</a></span>
 <span class="credit-start"><strong>Audio:</strong> Buchla Music Easel by <a href="https://seanbonner.com/">Sean Bonner</a>, original recording. Michelsonne Toy Piano by <a href="https://www.hainbachmusik.com/">Hainbach</a>, provided license free. Ghosts I-IV by <a href="https://nin.com/">Nine Inch Nails</a>, adapted under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/us/">CC BY-NC-SA 3.0 US</a>. Polivox by <a href="https://samplesfrommars.com/">Samples From Mars</a>, purchased for commercial use.</span>
-<span><strong>CC0 Data: <a href="https://safecast.org/data/">Safecast</a></strong></span>
-<span><strong>Live feed: <a href="https://blues.com/">Blues Inc.</a></strong></span>
-<span><strong>Imagery: <a href="https://www.usgs.gov/landsat-missions">Landsat</a>, courtesy of USGS.</strong></span>
+<span><strong>CC0 Data:</strong> <a href="https://safecast.org/data/">Safecast</a></span>
+<span><strong>Live feed:</strong> <a href="https://blues.com/">Blues Inc.</a></span>
+<span><strong>Imagery:</strong> <a href="https://www.usgs.gov/landsat-missions">Landsat</a>, courtesy of USGS.</span>
 
-</div></div><div class="plate-panel"><span>Safecast Live by <a href="https://seanbonner.com/">Sean Bonner</a>, 2026. Published under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA</a></span></div></div></div></section></div><style>
-#sc-layouts .sc-layout{background:#141414;color:#f6f6f6;padding:clamp(10px,2.1vw,23px);font:12px/1.5 "Courier New",monospace;min-height:740px;border:1px solid #777;box-sizing:border-box}
-#sc-layouts [hidden]{display:none!important}
-#sc-layouts header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:0 0 10px;margin-bottom:14px;border-bottom:3px double currentColor;letter-spacing:.08em}
-#sc-layouts header strong{font-size:20px}
-#sc-layouts .assembly{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;align-items:start}
-#sc-layouts .scope{background:#030303;padding:10px;border:3px double #888}
-#sc-layouts .art{position:relative;max-width:480px;margin:auto;aspect-ratio:1;display:grid;place-items:center}
-#sc-layouts canvas{width:100%;height:auto;display:block;image-rendering:pixelated}
-#sc-layouts .gps{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none;font-size:clamp(11px,2.4vw,21px)}
-#sc-layouts .sheet{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;margin:0;padding:0;width:100%}
-#sc-layouts .sheet img{width:100%;aspect-ratio:1;display:block;image-rendering:pixelated}
-#sc-layouts .sheet li{font-size:11px;overflow-wrap:anywhere;color:#eee}
-#sc-layouts .deck,#sc-layouts .readouts{min-width:0}
-#sc-layouts .switches,#sc-layouts .knobs{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:8px 0}
-#sc-layouts button,#sc-layouts select{background:#111;color:#fff;border:1px solid #888;border-radius:0;padding:5px 7px;font:inherit;max-width:100%}
-#sc-layouts button[aria-pressed=true]{background:#fff;color:#000}
-#sc-layouts button:disabled{opacity:.66}
-#sc-layouts .dial{display:grid;justify-items:center;gap:4px;position:relative;min-width:57px}
-#sc-layouts .wheel{display:grid;place-items:center;position:relative;width:46px;height:46px}
-#sc-layouts .wheel i{display:block;width:31px;height:31px;background:#111;border:2px solid #888;border-radius:50%;transform:rotate(var(--angle));box-sizing:border-box}
-#sc-layouts .wheel i::before{content:"";display:block;background:white;width:2px;height:10px;margin:0 auto}
-#sc-layouts .dial input{position:absolute;opacity:0;inset:14px 0 auto;width:100%;height:46px;margin:0}
-#sc-layouts .dial:focus-within .wheel{outline:2px solid currentColor;outline-offset:2px}
-#sc-layouts .sr{position:absolute;clip-path:inset(50%)}
-#sc-layouts .rack aside{border-left:1px solid #888;padding-left:12px}
-#sc-layouts .bench{background:#202020;color:#f6f6f6}
-#sc-layouts .bench .assembly{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
-#sc-layouts .bench .deck{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-top:3px double #888}
-#sc-layouts .field{max-width:650px;margin:auto;background:#080808;border:3px double #aaa}
-#sc-layouts .field .assembly{margin-top:12px}
-#sc-layouts .field .scope{max-width:430px;margin:auto}
-@media(max-width:630px){#sc-layouts .assembly,#sc-layouts .bench .assembly{grid-template-columns:1fr}#sc-layouts .rack aside{border:0;padding:0}}
-@media(max-width:450px){#sc-layouts .sheet{gap:6px}#sc-layouts .sheet img{aspect-ratio:1;object-fit:cover}}
-
-#sc-layouts [data-view],#sc-layouts summary{border:0;background:transparent;color:#fff;padding:7px 3px;min-height:38px}
-#sc-layouts [data-view][aria-pressed=true]{background:transparent;color:#fff}
-#sc-layouts [data-view] span,#sc-layouts summary span{display:inline-block;background:#262626;color:#eee;padding:3px 7px 2px;font-weight:bold;letter-spacing:.11em;text-shadow:0 -1px #000,0 1px #888;box-shadow:inset 0 1px #5a5a5a,inset 0 -1px #090909,1px 2px #050505}
-#sc-layouts [data-view="sheet"] span{translate:2px 2px}
-#sc-layouts summary span{translate:3px -1px}
-#sc-layouts [data-view][aria-pressed=true] span{background:#3a3a3a;color:#fff;text-decoration:none}
-
-#sc-layouts button,#sc-layouts select,#sc-layouts summary span,#sc-layouts [data-view] span,#sc-layouts .dial>span:first-child,#sc-layouts .switches label:has(input[type=checkbox]){
-  border:0;border-radius:0;background:#111;color:#f4f4f4;
-  padding:3px 7px;letter-spacing:.09em;font-weight:bold;
-  text-shadow:0 -1px #000,0 1px #777;
-  box-shadow:inset 0 1px #555,inset 0 -1px #030303,1px 2px #050505;
-}
-#sc-layouts [data-view],#sc-layouts [data-view][aria-pressed=true]{background:none;box-shadow:none;text-shadow:none;padding:7px 3px}
-#sc-layouts [data-view][aria-pressed=true] span,#sc-layouts details[open] summary span,#sc-layouts .switches label:has(input:checked){
-  background:#a2191c;color:#fff;box-shadow:inset 0 1px #df6364,inset 0 -1px #540709,1px 2px #050505;
-}
-#sc-layouts .switches>button:not([data-view]):nth-child(odd){translate:0 1px}
-#sc-layouts .switches select{translate:1px -1px}
-#sc-layouts button:disabled{color:#aaa;opacity:1}
-
-#sc-layouts .field{box-sizing:border-box;min-height:960px}
-#sc-layouts .field .scope,#sc-layouts .field .assembly{width:100%;max-width:450px;box-sizing:border-box;margin-inline:auto}
-#sc-layouts .field .assembly{display:block}
-#sc-layouts .field .choice,#sc-layouts .field .knobs,#sc-layouts .field .readouts{margin-block:14px}
-#sc-layouts .field .choice>span{text-transform:uppercase;letter-spacing:.1em}
-#sc-layouts .field .choice button{text-transform:uppercase}
-#sc-layouts .field .choice button[aria-pressed=true]{background:#a2191c;color:#fff;box-shadow:inset 0 1px #df6364,inset 0 -1px #540709,1px 2px #050505}
-#sc-layouts .field .choice button:nth-child(even){translate:1px 1px}
-#sc-layouts .centered .assembly{text-align:center}
-#sc-layouts .centered .switches,#sc-layouts .centered .knobs{justify-content:center}
-#sc-layouts .field .plate-copy{background:transparent;color:inherit;font:inherit;padding:0;border:0;min-height:94px}
-#sc-layouts .field .plate-panel{margin:12px 0 0;padding:0;border:0;background:none;box-shadow:none}
-#sc-layouts .field .plate-panel span{display:block;color:#efefef;font:700 12px/1.65 "Courier New",Courier,monospace;letter-spacing:.075em;text-shadow:0 -1px #000,0 1px #777;overflow-wrap:break-word}
-#sc-layouts .field .plate-panel b{color:#bdbdbd;font:inherit;margin-inline-end:.5em}
-
-#sc-layouts .pack-options{column-gap:5px;row-gap:3px}
-#sc-layouts .pack-options button{font-size:clamp(9px,2.6vw,11px);letter-spacing:0;padding-inline:4px;white-space:nowrap}
-#sc-layouts .pack-break{flex-basis:100%;height:0}
-#sc-layouts .switches button:nth-of-type(2){translate:1px 2px;margin-inline:2px 4px}
-#sc-layouts .switches button:nth-of-type(3){translate:-1px -1px;margin-inline-end:3px}
-#sc-layouts .switches button:nth-of-type(4){translate:1px 1px}
-#sc-layouts .dial:nth-child(even)>span:first-child{translate:1px 2px}
-#sc-layouts .field .plate-panel span{text-align:left;text-align-last:auto}
-#sc-layouts .plate-panel a{color:inherit;text-decoration:underline;text-underline-offset:2px}
-#sc-layouts .plate-panel .versions,#sc-layouts .plate-panel .credit-start{margin-top:.85em}
-#sc-layouts .sheet li{position:relative;min-width:0}
-#sc-layouts .sheet li span{position:absolute;inset:auto 0 0;background:#080808d9;padding:2px 4px;line-height:1.15;white-space:pre}
-#sc-layouts .sheet{position:absolute;inset:0;align-content:center} #sc-layouts .art{width:100%} #sc-layouts .gps{text-shadow:0 0 4px #000} 
-#sc-layouts .sc-layout.field{max-width:1200px}
-#sc-layouts .field .scope{max-width:none}
-#sc-layouts .field .art{max-width:none;aspect-ratio:3/2;overflow:hidden}
-#sc-layouts .field .art canvas{width:100%;height:100%;object-fit:cover;min-height:0}
-
-#sc-layouts .field .art canvas{width:100%;height:100%;object-fit:cover;min-height:0}
-
-#sc-layouts .field{min-height:0}
-#sc-layouts header .transport{margin:0;justify-content:flex-end}
-#sc-layouts .field .assembly{max-width:none}
-#sc-layouts .field .pack-options button{font:inherit;font-weight:700;letter-spacing:.09em;padding:3px 7px}
-#sc-layouts .field .plate-copy{display:grid;grid-template-columns:1fr 1fr;gap:16px}
-#sc-layouts .plate-panel h2{font:700 13px/1.5 "Courier New",monospace;text-transform:uppercase;letter-spacing:.13em;margin:0 0 8px;text-align:left}
-#sc-layouts .field .plate-copy .plate-panel{margin:0}
-#sc-layouts .readouts>.plate-panel{margin-top:16px}
-#sc-layouts .deck{margin-top:12px}
-#sc-layouts .plate .deck{border-block:3px double #aaa;padding:12px 0;background:#111}
-#sc-layouts .plate .plate-panel h2{border-bottom:1px solid #888;padding-bottom:5px}
-@media(max-width:580px){#sc-layouts .field .plate-copy{grid-template-columns:1fr}#sc-layouts header .transport{justify-content:flex-start}}
-
-#sc-layouts .sc-layout.field{background:#141414;border:0;border-radius:0}
-#sc-layouts header{border:0;padding:8px 10px 12px}
-#sc-layouts .field .scope{border:0;border-radius:0;padding:clamp(8px,1.7vw,20px);background:#303030;box-shadow:none}
-#sc-layouts .field .art{border-radius:0;background:#080808;isolation:isolate}
-#sc-layouts .field .art::after{content:"";position:absolute;inset:0;border-radius:0;box-shadow:none;pointer-events:none}
-
-#sc-layouts .plate .deck{border:0;background:none;padding:18px 0 7px}
-#sc-layouts .plate .pack-options{gap:9px 13px;margin-bottom:22px}
-#sc-layouts .plate .knobs{width:fit-content;margin:0 auto 18px;padding:12px 17px;gap:12px;background:#272727;border-radius:0}
-#sc-layouts .plate .switches button:not([data-view]),#sc-layouts .plate .switches [data-view] span,#sc-layouts .plate .dial>span:first-child{
- background:#080808;color:#f6f6f6;border:0;border-radius:0;padding:4px 8px;font-weight:900;letter-spacing:.075em;
- box-shadow:inset 0 1px #555,inset 0 -1px #000,2px 3px #0008;
- text-shadow:-.45px -.65px #000,.55px .8px #999;display:inline-block
-}
-#sc-layouts .plate .switches button[aria-pressed=true]:not([data-view]),#sc-layouts .plate .switches [data-view][aria-pressed=true] span{
- background:#9e191c;color:#fff;box-shadow:inset 0 1px #e66b6b,inset 0 -1px #58080a,2px 3px #0008;text-decoration:none
-}
-#sc-layouts .plate .switches button:disabled{color:#aaa;opacity:1}
-#sc-layouts .plate .switches button:nth-of-type(1){translate:-2px 1px;margin-inline-end:3px}
-#sc-layouts .plate .switches button:nth-of-type(2){translate:2px -2px;margin-inline-end:6px}
-#sc-layouts .plate .switches button:nth-of-type(3){translate:0 2px;margin-inline-end:1px}
-#sc-layouts .plate .switches button:nth-of-type(4){translate:2px 0;margin-inline-end:4px}
-#sc-layouts .plate .switches button:nth-of-type(5){translate:-1px 3px}
-#sc-layouts .plate .dial:nth-child(3n)>span:first-child{translate:-2px -1px}
-#sc-layouts .plate .plate-copy{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(16px,5vw,58px);align-items:start;text-align:left}
-#sc-layouts .plate .plate-copy .plate-panel{padding:0;border:0;background:none;border-radius:0}
-#sc-layouts .plate .plate-panel h2{display:table;border:0;padding:0;margin:0 0 10px}
-#sc-layouts .plate .plate-copy .plate-panel:first-child h2{background:#dedbd2;color:#111;padding:3px 10px;border-radius:0}
-#sc-layouts .plate .plate-copy .plate-panel:first-child span:first-of-type{font-size:14px;margin-bottom:8px}
-#sc-layouts .plate .plate-copy .plate-panel:nth-child(2) h2{letter-spacing:.22em;color:#ddd}
-#sc-layouts .plate .plate-copy .plate-panel:nth-child(2) span{font-weight:400;text-shadow:none}
-#sc-layouts .plate .readouts>.plate-panel{margin-top:24px}
-@media(max-width:580px){#sc-layouts .plate .plate-copy{grid-template-columns:1fr}#sc-layouts .plate .knobs{justify-content:center}}
-
-#sc-layouts .plate{
- --grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='113' height='107'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.83' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)' opacity='.16'/%3E%3C/svg%3E");
-}
-#sc-layouts .sc-layout.plate,#sc-layouts .plate .scope,#sc-layouts .plate .knobs{background-image:var(--grain);background-blend-mode:soft-light}
-#sc-layouts .plate .knobs{box-sizing:border-box;width:min(100%,820px);justify-content:center;align-items:center;gap:14px 22px}
-#sc-layouts .plate .knobs .loop-actions{flex-direction:column;align-items:flex-start;margin:0;gap:6px}
-#sc-layouts .plate .plate-copy{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
-#sc-layouts .plate .plate-copy .plate-panel:first-child{position:relative;border:1px solid #b6b3aa;border-radius:0;padding:14px 20px 16px 24px;margin-top:13px}
-#sc-layouts .plate .plate-copy .plate-panel:first-child h2{position:relative;width:max-content;margin:-28px 0 12px -25px;border:1px solid #b6b3aa;border-radius:0;padding:3px 10px}
-@media(max-width:580px){#sc-layouts .plate .plate-copy{grid-template-columns:1fr}#sc-layouts .plate .knobs{gap:10px;padding-inline:8px}}
-
-#sc-layouts .plate .knobs .loop-actions{gap:12px;margin-inline-start:8px;align-items:center}
-#sc-layouts .plate .knobs .loop-actions button{margin:0;translate:0}
-#sc-layouts .plate .knobs .loop-actions button+button{translate:2px 0}
-#sc-layouts .plate .switches button:not([data-view]),
-#sc-layouts .plate .switches [data-view] span,
-#sc-layouts .plate .dial>span:first-child,
-#sc-layouts .plate .nameplate span{
- background:linear-gradient(106deg,#191917,#0b0b0a 72%,#111110);
- color:#eee9d8;
- text-shadow:0 1px #696658;
- box-shadow:none;
- border:0;
- border-radius:0;
- padding:5px 9px;
- font-family:Arial,"Helvetica Neue",sans-serif;
- font-weight:700;
- letter-spacing:.14em;
- text-transform:uppercase;
-}
-#sc-layouts .plate .switches button[aria-pressed=true]:not([data-view]),
-#sc-layouts .plate .switches [data-view][aria-pressed=true] span{
- background:linear-gradient(108deg,#992326,#7e161a);
- color:#fff2dc;
- text-shadow:0 1px #541012;
- box-shadow:none;
-}
-#sc-layouts .plate .switches button:disabled{opacity:1;color:#a6a295;text-shadow:none}
-#sc-layouts .plate .pack-options button[data-value="buchla"]{rotate:-1.1deg}
-#sc-layouts .plate .loop-actions button+button{rotate:.9deg}
-#sc-layouts .plate .nameplate{display:flex;align-items:baseline;gap:7px;flex-wrap:wrap;font-size:clamp(14px,2.5vw,20px)}
-#sc-layouts .plate .nameplate span+span{font-size:.73em;translate:1px 2px;text-transform:none}
-#sc-layouts .plate .sheet li span{padding-inline:7px}
-@media(min-width:581px){#sc-layouts .plate .plate-copy .plate-panel:nth-child(2){margin-top:3em}}
-
-#sc-layouts .plate .pack-options button{font-family:Arial,"Helvetica Neue",sans-serif;letter-spacing:.14em}
-#sc-layouts .plate .sheet li span{max-width:100%;box-sizing:border-box;white-space:normal}
-</style>
-<script type="module" src="/player.mjs"></script></body></html>
+</div></div><div class="plate-panel"><span>Safecast Live by <a href="https://seanbonner.com/">Sean Bonner</a>, 2026. Published under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA</a></span></div></div></section></section>
+</div><script type="module" src="/player.mjs?v=terminal"></script></body></html>
