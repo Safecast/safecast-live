@@ -59,7 +59,7 @@ async function loadFrame({ lat, lon }) {
       pixels.data.fill(tone, i * 4, i * 4 + 3);
     });
     sampler.putImageData(pixels, 0, 0);
-    return { gray, src: scratch.toDataURL(), label: `${lat}, ${lon}` };
+    return { gray, src: scratch.toDataURL(), url, label: `${lat.toFixed(4)}, ${lon.toFixed(4)}` };
   } finally {
     image.close();
   }
@@ -82,7 +82,14 @@ function paint(now) {
 }
 
 export function showLocations(locations) {
-  pending = pending.concat(locations).slice(-9);
+  const distinct = new Map();
+  for (const location of pending.concat(locations)) {
+    const url = tileUrl(location.lat, location.lon);
+    if (frames.some((frame) => frame.url === url)) continue;
+    distinct.delete(url);
+    distinct.set(url, location);
+  }
+  pending = [...distinct.values()].slice(-9);
   if (!loading && pending.length) void loadPending();
 }
 
@@ -90,7 +97,8 @@ async function loadPending() {
   loading = true;
   try {
     while (pending.length) {
-      const batch = pending.splice(0);
+      const batch = pending.splice(0).filter(({ lat, lon }) =>
+        !frames.some((frame) => frame.url === tileUrl(lat, lon)));
       const loaded = await Promise.all(batch.map((location) => loadFrame(location).catch(() => null)));
       const now = performance.now();
       for (const frame of loaded) {
@@ -107,7 +115,7 @@ async function loadPending() {
         const caption = document.createElement("span");
         image.src = src;
         image.alt = "Landsat imagery near " + label;
-        caption.textContent = label;
+        caption.textContent = label.replace(", ", "\n");
         tile.append(image, caption);
         return tile;
       }));
