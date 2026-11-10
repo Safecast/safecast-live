@@ -73,7 +73,7 @@ async function events(request, env) {
     }
     if (!/^\d+$/.test(after) || !Number.isSafeInteger(Number(after))) return reply(400);
     const { results } = await env.DB.prepare(
-      "SELECT seq, payload FROM events WHERE seq > ? ORDER BY seq LIMIT 64"
+      "SELECT seq, accepted_at, payload FROM events WHERE seq > ? ORDER BY seq LIMIT 64"
     ).bind(Number(after)).all();
     const events = [];
     const locations = [];
@@ -87,7 +87,7 @@ async function events(request, env) {
         // Use the original common 20–50 CPM range as a starting point for Radnote.
         samples.push(key === "cpm" ? sample("rad", value, 20, 50) : sample("air", value, 0, 10));
       }
-      if (samples.length) events.push(samples);
+      if (samples.length) events.push({ at: row.accepted_at, samples });
       const lat = event.where_lat ?? (event.where_when > 0 ? 0 : undefined);
       const lon = event.where_lon ?? (event.where_when > 0 ? 0 : undefined);
       if (samples.length && Number.isFinite(lat) && Number.isFinite(lon)
@@ -96,7 +96,7 @@ async function events(request, env) {
         locations.push({ lat, lon });
       }
     }
-    return Response.json({ cursor: results.at(-1)?.seq ?? Number(after), events, locations }, { headers });
+    return Response.json({ cursor: results.at(-1)?.seq ?? Number(after), now: Date.now(), events, locations }, { headers });
   } catch {
     return reply(503);
   }

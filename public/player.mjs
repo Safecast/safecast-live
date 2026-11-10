@@ -11,6 +11,8 @@ const captureLoop = document.querySelector("#capture-loop");
 const loopLevel = document.querySelector("#loop-level");
 const clearLoop = document.querySelector("#clear-loop");
 const loopSeconds = 15;
+// Readings are replayed with the spacing they arrived at, this many seconds behind live.
+const playbackDelay = 3;
 const status = document.querySelector("#status");
 const ids = ["rad", "air"].flatMap((type) =>
   Array.from({ length: 11 }, (_, index) => type + String(index).padStart(2, "0")));
@@ -135,10 +137,11 @@ captureLoop.onclick = () => {
   if (!active) return;
   const now = context.currentTime;
   recentSounds(active, now);
-  if (active.history.length === 0) return;
+  const heard = active.history.filter(({ time }) => time <= now).sort((a, b) => a.time - b.time);
+  if (heard.length === 0) return;
 
   clearLayer();
-  const score = active.history.map(({ pack, id, buffer, time }) => ({
+  const score = heard.map(({ pack, id, buffer, time }) => ({
     pack, id, buffer, offset: time - (now - loopSeconds)
   }));
   const layer = { gain: context.createGain(), voices: new Set() };
@@ -259,7 +262,12 @@ async function start() {
       if (signal.aborted) return;
       cursor = batch.cursor;
       showLocations(batch.locations ?? []);
-      for (const id of batch.events.flat().slice(-16)) {
+      const audioNow = context.currentTime;
+      const readings = batch.events.slice(-16).flatMap(({ at, samples }) => {
+        const time = Math.max(audioNow, audioNow + playbackDelay - (batch.now - at) / 1000);
+        return samples.map((id) => ({ id, time }));
+      });
+      for (const { id, time } of readings) {
         if (active.voices.size >= 24) break;
         const source = context.createBufferSource();
         const index = Math.floor(Math.random() * packs.length);
@@ -267,7 +275,6 @@ async function start() {
         source.connect(active.effects.input);
         active.voices.add(source);
         source.onended = () => active.voices.delete(source);
-        const time = context.currentTime;
         source.start(time);
         active.history.push({ pack: names[index], id, buffer: source.buffer, time });
         triggered++;
