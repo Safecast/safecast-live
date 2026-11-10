@@ -19,9 +19,9 @@ body{margin:0;background:#0b0b0a}
 #sc-terminal button[aria-pressed=true]{background:#d1d1c6;color:#0b0b0a;text-decoration:none}
 #sc-terminal button:disabled{opacity:.5}
 #sc-terminal button:focus-visible,#sc-terminal a:focus-visible{outline:1px solid currentColor;outline-offset:3px}
-#sc-terminal .art{aspect-ratio:3/2;position:relative;overflow:hidden;display:grid;place-items:center}
+#sc-terminal .art{aspect-ratio:3/2;position:relative;overflow:hidden;display:grid;place-items:center;container-type:inline-size}
 #sc-terminal canvas{display:block;width:100%;height:100%;min-height:0;object-fit:cover;image-rendering:pixelated}
-#sc-terminal .gps{position:absolute;color:#e0e0d8!important;text-shadow:1px 1px 3px #000;font:inherit}
+#sc-terminal .gps{position:absolute;color:#e0e0d8!important;text-shadow:1px 1px 3px #000;font:inherit;font-size:min(42px,5.5cqi);letter-spacing:.15em;margin-right:-.15em;white-space:nowrap}
 #sc-terminal .sheet{position:absolute;inset:0;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:5px;padding:0;margin:0;list-style:none}
 #sc-terminal .sheet li{display:grid;grid-template-rows:minmax(0,1fr) auto;min-width:0;min-height:0}
 #sc-terminal .sheet img{display:block;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
