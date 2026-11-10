@@ -1,53 +1,96 @@
-<!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Safecast Live</title>
-<style>
-  :root { color-scheme: dark; }
-  body { margin: 0; background: #121612; color: #e3ebe0; font: 1rem system-ui; }
-  main { max-width: 40rem; margin: 12vh auto; padding: 1.5rem; }
-  h1 { font-size: clamp(2.5rem, 9vw, 5rem); margin: 0; }
-  button, select { font: inherit; padding: .5rem; }
-  label { display: inline-block; margin: .5rem; }
-  #status { color: #b5cbb0; }
-  a { color: inherit; }
-</style>
-<script type="module" src="/player.mjs"></script>
-</head>
-<body>
-<main>
-<h1>Safecast Live v2.0</h1>
-<p>A fully random and generative soundscape driven by a live feed of global radiation and air quality data.</p>
-<button id="play">Listen</button>
-<label>Sound pack <select id="pack">
-<option value="all">Everything</option>
-<option value="buchla">Buchla Easel</option>
-<option value="sean">Michelsonne</option>
-<option value="NIN">NIN: Ghosts</option>
-<option value="polivox">Polivox</option>
-</select></label>
-<label>Volume <input id="volume" type="range" min="0" max="1" step=".01" value=".35"></label>
-<div aria-label="Effects" role="group">
-<label>Reverb <input id="reverb" type="range" min="0" max="1" step=".01" value="1"></label>
-<label>Echo <input id="echo" type="range" min="0" max="1" step=".01" value=".5"></label>
-<label>Effects routing <select id="routing">
-<option value="parallel">Parallel</option>
-<option value="echo-reverb">Echo → Reverb</option>
-<option value="reverb-echo">Reverb → Echo</option>
-</select></label>
-<label><input id="kill-dry" type="checkbox"> Kill Dry</label>
-</div>
-<div role="group" aria-label="Loop">
-<button id="capture-loop" disabled>Loop last 15 seconds</button>
-<label>Loop level <input id="loop-level" type="range" min="0" max="1" step=".01" value=".35"></label>
-<button id="clear-loop" disabled>Clear loop</button>
-</div>
-<p id="status" role="status">Paused</p>
-<p><a href="https://safecast.org/safecast-live/">About the original project</a></p>
-<p><small>Audio credits — <a href="https://nin.com/">Nine Inch Nails</a> (<cite>Ghosts I–IV</cite>) and <a href="https://www.hainbachmusik.com/">Hainbach</a> (Michelsonne toy piano), used under Creative Commons. Polivox samples purchased from <a href="https://samplesfrommars.com/">Samples From Mars</a>. Buchla Music Easel samples recorded by <a href="https://seanbonner.com/">Sean Bonner</a> on his own synthesizer.</small></p>
-<p><small>Data credits — Radiation and air quality data from <a href="https://safecast.org/">Safecast</a>, with the live feed facilitated by <a href="https://blues.com/">Blues Inc.</a></small></p>
-</main>
-</body>
-</html>
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safecast Live v2.0</title><style>body{margin:0;background:#080808;padding:12px}</style></head><body><div id="sc-layouts"><section class="sc-layout field centered"><header><strong>SAFECAST LIVE / V2.0</strong><span>ENVIRONMENTAL SIGNAL PROCESSOR</span></header><div class="scope"><div class="art"><canvas width="144" height="144" aria-label="Layered grayscale aerial photographs"></canvas><b class="gps">Waiting for location</b><ol class="sheet" hidden></ol></div></div><div class="assembly"><div class="switches transport"><button type="button" id="play">Play</button><button type="button" aria-pressed="true" data-view="overlay"><span>OVERLAY</span></button><button type="button" aria-pressed="false" data-view="sheet"><span>CONTACT SHEET</span></button></div><div class="deck"><div><div class="choice"><div class="switches pack-options" role="group" aria-label="Sound pack"><button type="button" aria-pressed="true" data-value="all">Everything</button><span class="pack-break" aria-hidden="true"></span><button type="button" aria-pressed="false" data-value="buchla">Buchla</button><button type="button" aria-pressed="false" data-value="sean">Michelsonne</button><button type="button" aria-pressed="false" data-value="NIN">Ghosts I-IV</button><button type="button" aria-pressed="false" data-value="polivox">Polivox</button></div></div></div><div class="knobs"><label class="dial"><span>VOL</span><span class="wheel" style="--angle:-40.5deg"><i></i></span><input type="range" id="volume" value="35"><output>035</output></label><label class="dial"><span>REVERB</span><span class="wheel" style="--angle:135.0deg"><i></i></span><input type="range" id="reverb" value="100"><output>100</output></label><label class="dial"><span>ECHO</span><span class="wheel" style="--angle:0.0deg"><i></i></span><input type="range" id="echo" value="50"><output>050</output></label><label class="dial"><span>WET/DRY</span><span class="wheel" style="--angle:0deg"><i></i></span><input type="range" id="mix" value="50" aria-label="Wet/dry mix" aria-valuetext="50% wet, 50% dry" data-mix><output>050</output></label><label class="dial"><span>Loop Vol</span><span class="wheel" style="--angle:-40.5deg"><i></i></span><input type="range" id="loop-level" value="35"><output>035</output></label></div><div class="switches loop-actions"><button type="button" id="capture-loop" disabled>Capture Loop</button><button type="button" id="clear-loop" disabled>Clear Loop</button></div><div><div class="choice"><div class="switches" role="group" aria-label="Effects order"><button type="button" aria-pressed="true" data-value="echo-reverb">Echo &gt; Reverb</button><button type="button" aria-pressed="false" data-value="reverb-echo">Reverb &gt; Echo</button><button type="button" aria-pressed="false" data-value="parallel">Parallel</button></div></div></div></div><p id="status" role="status">Paused</p><div class="readouts"><div class="choice info"><div class="switches" role="group" aria-label="Project details"><button type="button" aria-pressed="true">Information</button><button type="button" aria-pressed="false">Credits</button></div><div class="plate-copy"><div class="plate-panel">
+<span><strong>An entirely random, environmental, generative soundscape.</strong></span>
+<span class="credit-start">This work is driven by a global, real time network of radiation and air quality sensors. As data is received, readings are mapped to specific samples. Ranges have different tonal markers and it's possible to recognize higher or lower measurements by sound alone. GPS maps to the specific location of the sensor, imagery however is representative of the general area because it looks better in this artistic context.</span>
+<span class="versions">2026 - v2.0<br>2021 - <a href="https://safecast.org/safecast-live/">v1.0</a> (deprecated)</span>
+</div><div class="plate-panel" hidden>
+<span>By: <a href="https://seanbonner.com/">Sean Bonner</a></span>
+<span class="credit-start"><strong>Audio:</strong> Buchla Music Easel by <a href="https://seanbonner.com/">Sean Bonner</a>, original recording. Michelsonne Toy Piano by <a href="https://www.hainbachmusik.com/">Hainbach</a>, provided license free. Ghosts I-IV by <a href="https://nin.com/">Nine Inch Nails</a>, adapted under <a href="https://creativecommons.org/licenses/by-nc-sa/3.0/us/">CC BY-NC-SA 3.0 US</a>. Polivox by <a href="https://samplesfrommars.com/">Samples From Mars</a>, purchased for commercial use.</span>
+<span><strong>CC0 Data: <a href="https://safecast.org/data/">Safecast</a></strong></span>
+<span><strong>Live feed: <a href="https://blues.com/">Blues Inc.</a></strong></span>
+<span><strong>Imagery: <a href="https://www.usgs.gov/landsat-missions">Landsat</a>, courtesy of USGS.</strong></span>
+
+</div></div><div class="plate-panel"><span>Safecast Live by <a href="https://seanbonner.com/">Sean Bonner</a>, 2026. Published under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA</a></span></div></div></div></section></div><style>
+#sc-layouts .sc-layout{background:#141414;color:#f6f6f6;padding:clamp(10px,2.1vw,23px);font:12px/1.5 "Courier New",monospace;min-height:740px;border:1px solid #777;box-sizing:border-box}
+#sc-layouts [hidden]{display:none!important}
+#sc-layouts header{display:flex;align-items:baseline;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:0 0 10px;margin-bottom:14px;border-bottom:3px double currentColor;letter-spacing:.08em}
+#sc-layouts header strong{font-size:20px}
+#sc-layouts .assembly{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:14px;align-items:start}
+#sc-layouts .scope{background:#030303;padding:10px;border:3px double #888}
+#sc-layouts .art{position:relative;max-width:480px;margin:auto;aspect-ratio:1;display:grid;place-items:center}
+#sc-layouts canvas{width:100%;height:auto;display:block;image-rendering:pixelated}
+#sc-layouts .gps{position:absolute;inset:0;display:grid;place-items:center;text-align:center;pointer-events:none;font-size:clamp(11px,2.4vw,21px)}
+#sc-layouts .sheet{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;list-style:none;margin:0;padding:0;width:100%}
+#sc-layouts .sheet img{width:100%;aspect-ratio:1;display:block;image-rendering:pixelated}
+#sc-layouts .sheet li{font-size:11px;overflow-wrap:anywhere;color:#eee}
+#sc-layouts .deck,#sc-layouts .readouts{min-width:0}
+#sc-layouts .switches,#sc-layouts .knobs{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin:8px 0}
+#sc-layouts button,#sc-layouts select{background:#111;color:#fff;border:1px solid #888;border-radius:0;padding:5px 7px;font:inherit;max-width:100%}
+#sc-layouts button[aria-pressed=true]{background:#fff;color:#000}
+#sc-layouts button:disabled{opacity:.66}
+#sc-layouts .dial{display:grid;justify-items:center;gap:4px;position:relative;min-width:57px}
+#sc-layouts .wheel{display:grid;place-items:center;position:relative;border:1px dashed currentColor;border-radius:50%;width:44px;height:44px}
+#sc-layouts .wheel i{display:block;width:31px;height:31px;background:#111;border:2px solid #888;border-radius:50%;transform:rotate(var(--angle));box-sizing:border-box}
+#sc-layouts .wheel i::before{content:"";display:block;background:white;width:2px;height:10px;margin:0 auto}
+#sc-layouts .dial input{position:absolute;opacity:0;inset:14px 0 auto;width:100%;height:46px;margin:0}
+#sc-layouts .dial:focus-within .wheel{outline:2px solid currentColor;outline-offset:2px}
+#sc-layouts .sr{position:absolute;clip-path:inset(50%)}
+#sc-layouts .rack aside{border-left:1px solid #888;padding-left:12px}
+#sc-layouts .bench{background:#202020;color:#f6f6f6}
+#sc-layouts .bench .assembly{grid-template-columns:minmax(0,2fr) minmax(0,1fr)}
+#sc-layouts .bench .deck{display:flex;align-items:center;flex-wrap:wrap;gap:10px;border-top:3px double #888}
+#sc-layouts .field{max-width:650px;margin:auto;background:#080808;border:3px double #aaa}
+#sc-layouts .field .assembly{margin-top:12px}
+#sc-layouts .field .scope{max-width:430px;margin:auto}
+@media(max-width:630px){#sc-layouts .assembly,#sc-layouts .bench .assembly{grid-template-columns:1fr}#sc-layouts .rack aside{border:0;padding:0}}
+@media(max-width:450px){#sc-layouts .sheet{gap:6px}#sc-layouts .sheet img{aspect-ratio:1;object-fit:cover}}
+
+#sc-layouts [data-view],#sc-layouts summary{border:0;background:transparent;color:#fff;padding:7px 3px;min-height:38px}
+#sc-layouts [data-view][aria-pressed=true]{background:transparent;color:#fff}
+#sc-layouts [data-view] span,#sc-layouts summary span{display:inline-block;background:#262626;color:#eee;padding:3px 7px 2px;font-weight:bold;letter-spacing:.11em;text-shadow:0 -1px #000,0 1px #888;box-shadow:inset 0 1px #5a5a5a,inset 0 -1px #090909,1px 2px #050505}
+#sc-layouts [data-view="sheet"] span{translate:2px 2px}
+#sc-layouts summary span{translate:3px -1px}
+#sc-layouts [data-view][aria-pressed=true] span{background:#3a3a3a;color:#fff;text-decoration:none}
+
+#sc-layouts button,#sc-layouts select,#sc-layouts summary span,#sc-layouts [data-view] span,#sc-layouts .dial>span:first-child,#sc-layouts .switches label:has(input[type=checkbox]){
+  border:0;border-radius:0;background:#111;color:#f4f4f4;
+  padding:3px 7px;letter-spacing:.09em;font-weight:bold;
+  text-shadow:0 -1px #000,0 1px #777;
+  box-shadow:inset 0 1px #555,inset 0 -1px #030303,1px 2px #050505;
+}
+#sc-layouts [data-view],#sc-layouts [data-view][aria-pressed=true]{background:none;box-shadow:none;text-shadow:none;padding:7px 3px}
+#sc-layouts [data-view][aria-pressed=true] span,#sc-layouts details[open] summary span,#sc-layouts .switches label:has(input:checked){
+  background:#a2191c;color:#fff;box-shadow:inset 0 1px #df6364,inset 0 -1px #540709,1px 2px #050505;
+}
+#sc-layouts .switches>button:not([data-view]):nth-child(odd){translate:0 1px}
+#sc-layouts .switches select{translate:1px -1px}
+#sc-layouts button:disabled{color:#aaa;opacity:1}
+
+#sc-layouts .field{box-sizing:border-box;min-height:960px}
+#sc-layouts .field .scope,#sc-layouts .field .assembly{width:100%;max-width:450px;box-sizing:border-box;margin-inline:auto}
+#sc-layouts .field .assembly{display:block}
+#sc-layouts .field .choice,#sc-layouts .field .knobs,#sc-layouts .field .readouts{margin-block:14px}
+#sc-layouts .field .choice>span{text-transform:uppercase;letter-spacing:.1em}
+#sc-layouts .field .choice button{text-transform:uppercase}
+#sc-layouts .field .choice button[aria-pressed=true]{background:#a2191c;color:#fff;box-shadow:inset 0 1px #df6364,inset 0 -1px #540709,1px 2px #050505}
+#sc-layouts .field .choice button:nth-child(even){translate:1px 1px}
+#sc-layouts .centered .assembly{text-align:center}
+#sc-layouts .centered .switches,#sc-layouts .centered .knobs{justify-content:center}
+#sc-layouts .field .plate-copy{background:transparent;color:inherit;font:inherit;padding:0;border:0;min-height:94px}
+#sc-layouts .field .plate-panel{margin:12px 0 0;padding:0;border:0;background:none;box-shadow:none}
+#sc-layouts .field .plate-panel span{display:block;color:#efefef;font:700 12px/1.65 "Courier New",Courier,monospace;letter-spacing:.075em;text-shadow:0 -1px #000,0 1px #777;overflow-wrap:break-word}
+#sc-layouts .field .plate-panel b{color:#bdbdbd;font:inherit;margin-inline-end:.5em}
+
+#sc-layouts .pack-options{column-gap:5px;row-gap:3px}
+#sc-layouts .pack-options button{font-size:clamp(9px,2.6vw,11px);letter-spacing:0;padding-inline:4px;white-space:nowrap}
+#sc-layouts .pack-break{flex-basis:100%;height:0}
+#sc-layouts .switches button:nth-of-type(2){translate:1px 2px;margin-inline:2px 4px}
+#sc-layouts .switches button:nth-of-type(3){translate:-1px -1px;margin-inline-end:3px}
+#sc-layouts .switches button:nth-of-type(4){translate:1px 1px}
+#sc-layouts .dial:nth-child(even)>span:first-child{translate:1px 2px}
+#sc-layouts .field .plate-panel span{text-align:left;text-align-last:auto}
+#sc-layouts .plate-panel a{color:inherit;text-decoration:underline;text-underline-offset:2px}
+#sc-layouts .plate-panel .versions,#sc-layouts .plate-panel .credit-start{margin-top:.85em}
+#sc-layouts .sheet li{position:relative;min-width:0}
+#sc-layouts .sheet li span{position:absolute;inset:auto 0 0;background:#080808d9;padding:2px 4px;line-height:1.15;overflow-wrap:anywhere}
+#sc-layouts .sheet{position:absolute;inset:0;align-content:center} #sc-layouts .art{width:100%} #sc-layouts .gps{text-shadow:0 0 4px #000} </style>
+<script type="module" src="/player.mjs"></script></body></html>
