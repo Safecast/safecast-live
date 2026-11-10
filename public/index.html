@@ -28,7 +28,7 @@
 #sc-layouts button[aria-pressed=true]{background:#fff;color:#000}
 #sc-layouts button:disabled{opacity:.66}
 #sc-layouts .dial{display:grid;justify-items:center;gap:4px;position:relative;min-width:57px}
-#sc-layouts .wheel{display:grid;place-items:center;position:relative;border:1px dashed currentColor;border-radius:50%;width:44px;height:44px}
+#sc-layouts .wheel{display:grid;place-items:center;position:relative;width:46px;height:46px}
 #sc-layouts .wheel i{display:block;width:31px;height:31px;background:#111;border:2px solid #888;border-radius:50%;transform:rotate(var(--angle));box-sizing:border-box}
 #sc-layouts .wheel i::before{content:"";display:block;background:white;width:2px;height:10px;margin:0 auto}
 #sc-layouts .dial input{position:absolute;opacity:0;inset:14px 0 auto;width:100%;height:46px;margin:0}
@@ -113,17 +113,17 @@
 #sc-layouts .plate .plate-panel h2{border-bottom:1px solid #888;padding-bottom:5px}
 @media(max-width:580px){#sc-layouts .field .plate-copy{grid-template-columns:1fr}#sc-layouts header .transport{justify-content:flex-start}}
 
-#sc-layouts .sc-layout.field{background:#141414;border:0;border-radius:28px}
+#sc-layouts .sc-layout.field{background:#141414;border:0;border-radius:0}
 #sc-layouts header{border:0;padding:8px 10px 12px}
-#sc-layouts .field .scope{border:0;border-radius:clamp(9px,1.6vw,17px);padding:clamp(8px,1.7vw,20px);background:#303030;box-shadow:none}
-#sc-layouts .field .art{border-radius:clamp(4px,0.8vw,8px);background:#080808;isolation:isolate}
-#sc-layouts .field .art::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:none;pointer-events:none}
+#sc-layouts .field .scope{border:0;border-radius:0;padding:clamp(8px,1.7vw,20px);background:#303030;box-shadow:none}
+#sc-layouts .field .art{border-radius:0;background:#080808;isolation:isolate}
+#sc-layouts .field .art::after{content:"";position:absolute;inset:0;border-radius:0;box-shadow:none;pointer-events:none}
 
 #sc-layouts .plate .deck{border:0;background:none;padding:18px 0 7px}
 #sc-layouts .plate .pack-options{gap:9px 13px;margin-bottom:22px}
-#sc-layouts .plate .knobs{width:fit-content;margin:0 auto 18px;padding:12px 17px;gap:12px;background:#272727;border-radius:24px 24px 11px 11px}
+#sc-layouts .plate .knobs{width:fit-content;margin:0 auto 18px;padding:12px 17px;gap:12px;background:#272727;border-radius:0}
 #sc-layouts .plate .switches button:not([data-view]),#sc-layouts .plate .switches [data-view] span,#sc-layouts .plate .dial>span:first-child{
- background:#080808;color:#f6f6f6;border:0;border-radius:1px;padding:4px 8px;font-weight:900;letter-spacing:.075em;
+ background:#080808;color:#f6f6f6;border:0;border-radius:0;padding:4px 8px;font-weight:900;letter-spacing:.075em;
  box-shadow:inset 0 1px #555,inset 0 -1px #000,2px 3px #0008;
  text-shadow:-.45px -.65px #000,.55px .8px #999;display:inline-block
 }
@@ -140,7 +140,7 @@
 #sc-layouts .plate .plate-copy{grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:clamp(16px,5vw,58px);align-items:start;text-align:left}
 #sc-layouts .plate .plate-copy .plate-panel{padding:0;border:0;background:none;border-radius:0}
 #sc-layouts .plate .plate-panel h2{display:table;border:0;padding:0;margin:0 0 10px}
-#sc-layouts .plate .plate-copy .plate-panel:first-child h2{background:#dedbd2;color:#111;padding:3px 10px;border-radius:8px 8px 3px 3px}
+#sc-layouts .plate .plate-copy .plate-panel:first-child h2{background:#dedbd2;color:#111;padding:3px 10px;border-radius:0}
 #sc-layouts .plate .plate-copy .plate-panel:first-child span:first-of-type{font-size:14px;margin-bottom:8px}
 #sc-layouts .plate .plate-copy .plate-panel:nth-child(2) h2{letter-spacing:.22em;color:#ddd}
 #sc-layouts .plate .plate-copy .plate-panel:nth-child(2) span{font-weight:400;text-shadow:none}
@@ -154,8 +154,8 @@
 #sc-layouts .plate .knobs{box-sizing:border-box;width:min(100%,820px);justify-content:center;align-items:center;gap:14px 22px}
 #sc-layouts .plate .knobs .loop-actions{flex-direction:column;align-items:flex-start;margin:0;gap:6px}
 #sc-layouts .plate .plate-copy{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
-#sc-layouts .plate .plate-copy .plate-panel:first-child{position:relative;border:1px solid #b6b3aa;border-radius:0 14px 14px 14px;padding:14px 20px 16px 24px;margin-top:13px}
-#sc-layouts .plate .plate-copy .plate-panel:first-child h2{position:relative;width:max-content;margin:-28px 0 12px -25px;border:1px solid #b6b3aa;border-radius:6px 6px 0 0;padding:3px 10px}
+#sc-layouts .plate .plate-copy .plate-panel:first-child{position:relative;border:1px solid #b6b3aa;border-radius:0;padding:14px 20px 16px 24px;margin-top:13px}
+#sc-layouts .plate .plate-copy .plate-panel:first-child h2{position:relative;width:max-content;margin:-28px 0 12px -25px;border:1px solid #b6b3aa;border-radius:0;padding:3px 10px}
 @media(max-width:580px){#sc-layouts .plate .plate-copy{grid-template-columns:1fr}#sc-layouts .plate .knobs{gap:10px;padding-inline:8px}}
 
 #sc-layouts .plate .knobs .loop-actions{gap:12px;margin-inline-start:8px;align-items:center}
