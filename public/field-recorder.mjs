@@ -37,7 +37,22 @@ function tileUrl(lat, lon) {
     `2000-12-01/GoogleMapsCompatible_Level12/${zoom}/${y}/${x}.jpeg`;
 }
 
-async function loadFrame({ lat, lon }) {
+const preloaded = new Map();
+
+// Fetch and process a tile ahead of time without showing it.
+export function preloadLocation(location) {
+  const url = tileUrl(location.lat, location.lon);
+  if (!preloaded.has(url)) preloaded.set(url, processFrame(location).catch(() => null));
+}
+
+function loadFrame(location) {
+  const url = tileUrl(location.lat, location.lon);
+  const ready = preloaded.get(url);
+  preloaded.delete(url);
+  return ready ?? processFrame(location);
+}
+
+async function processFrame({ lat, lon }) {
   const url = tileUrl(lat, lon);
   const response = await fetch(url, { signal: AbortSignal.timeout(8000) });
   if (!response.ok) return null;

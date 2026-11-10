@@ -1,4 +1,4 @@
-import { showLocations } from "./field-recorder.mjs";
+import { showLocations, preloadLocation } from "./field-recorder.mjs?v=opening";
 const play = document.querySelector("#play");
 const pack = document.querySelector('[aria-label="Sound pack"]');
 const volume = document.querySelector("#volume");
@@ -17,6 +17,7 @@ const status = document.querySelector("#status");
 const ids = ["rad", "air"].flatMap((type) =>
   Array.from({ length: 11 }, (_, index) => type + String(index).padStart(2, "0")));
 let session;
+let opening;
 let context;
 let gain;
 let impulse;
@@ -108,6 +109,42 @@ async function resumeAudio() {
     if (context.state !== "running") throw new Error("Audio is not running");
   } finally {
     clearTimeout(timeout);
+  }
+}
+
+// Fetch the latest reading and location before Play is pressed, along with the raw
+// audio for that reading in every pack, so the first sound and image are instant.
+function prepareOpening() {
+  opening = readEvents(null).then((batch) => {
+    const location = batch.locations?.[0];
+    if (location) preloadLocation(location);
+    const ids = batch.events[0]?.samples ?? [];
+    const names = Array.from(pack.querySelectorAll("button"), (option) => option.dataset.value).filter((name) => name !== "all");
+    const audio = new Map(names.flatMap((name) => ids.map((id) => [`${name}/${id}`,
+      fetch(`/audio/${name}/${id}.mp3`).then((response) => response.ok ? response.arrayBuffer() : null).catch(() => null)])));
+    return { ids, location, audio };
+  }).catch(() => null);
+}
+
+async function playOpening(active, names) {
+  const ready = await opening;
+  prepareOpening();
+  if (!ready || active.controller.signal.aborted) return;
+  if (ready.location) showLocations([ready.location]);
+  for (const id of ready.ids) {
+    const name = names[Math.floor(Math.random() * names.length)];
+    const bytes = await ready.audio.get(`${name}/${id}`);
+    if (!bytes || active.controller.signal.aborted) continue;
+    const buffer = await context.decodeAudioData(bytes.slice(0)).catch(() => null);
+    if (!buffer || active.controller.signal.aborted) continue;
+    const source = context.createBufferSource();
+    source.buffer = buffer;
+    source.connect(active.effects.input);
+    active.voices.add(source);
+    source.onended = () => active.voices.delete(source);
+    const time = context.currentTime;
+    source.start(time);
+    active.history.push({ pack: name, id, buffer, time });
   }
 }
 
@@ -203,7 +240,7 @@ function stop() {
   status.textContent = "Paused";
 }
 
-async function start() {
+async function start(withOpening = false) {
   stop();
   const active = { controller: new AbortController(), voices: new Set(), history: [] };
   const { signal } = active.controller;
@@ -240,6 +277,7 @@ async function start() {
     }
     gain.gain.value = level(volume);
     active.effects = createEffects();
+    if (withOpening) void playOpening(active, names);
     packs = await loadPacks(names, signal, context);
     if (signal.aborted) return;
   } catch {
@@ -258,10 +296,13 @@ async function start() {
       return;
     }
     try {
+      const joining = cursor === null;
       const batch = await readEvents(cursor, signal);
       if (signal.aborted) return;
       cursor = batch.cursor;
-      showLocations(batch.locations ?? []);
+      // Joining the feed only sets the cursor; the starting reading is the opening's job.
+      if (joining) batch.events = [];
+      else showLocations(batch.locations ?? []);
       const audioNow = context.currentTime;
       const readings = batch.events.slice(-16).flatMap(({ at, samples }) => {
         const time = Math.max(audioNow, audioNow + playbackDelay - (batch.now - at) / 1000);
@@ -293,7 +334,8 @@ async function start() {
   void poll();
 }
 
-play.onclick = () => session ? stop() : void start();
+play.onclick = () => session ? stop() : void start(true);
+prepareOpening();
 
 volume.oninput = () => { if (gain) gain.gain.value = level(volume); };
 
