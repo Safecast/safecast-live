@@ -41,7 +41,7 @@ body{margin:0;background:#0b0b0a}
 #sc-terminal .plate-copy{display:grid;grid-template-columns:1.35fr 1fr;gap:28px}
 #sc-terminal .plate-panel span{display:block;text-transform:lowercase;margin-bottom:8px}
 #sc-terminal .readouts>.plate-panel{margin-top:20px}
-@media(max-width:580px){#sc-terminal .plate-copy{grid-template-columns:1fr;gap:12px}#sc-terminal .sheet span{font-size:11px}}
+@media(max-width:580px){#sc-terminal .plate-copy{grid-template-columns:1fr;gap:12px}#sc-terminal .sheet span{font-size:min(11px,2.6vw);white-space:nowrap;overflow:hidden}}
 
 #sc-terminal .art:not(:has(.sheet li)){background:#ccc}
 #sc-terminal .art:not(:has(.sheet li)) .gps{display:block!important;color:#000!important;text-shadow:none}
@@ -65,7 +65,7 @@ body{margin:0;background:#0b0b0a}
 <span><strong>Imagery:</strong> <a href="https://www.usgs.gov/landsat-missions">Landsat</a>, courtesy of USGS.</span>
 
 </div></div><div class="plate-panel"><span>Safecast Live by <a href="https://seanbonner.com/">Sean Bonner</a>, 2026. Published under <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/">CC BY-NC-SA</a></span></div></div></section></section>
-</div></div><script type="module" src="/player.mjs?v=opening"></script><script>
+</div></div><script type="module" src="/player.mjs?v=caption"></script><script>
 document.querySelector(".image-playback").addEventListener("click", () => {
   document.getElementById("play").click();
 });

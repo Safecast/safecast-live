@@ -130,7 +130,7 @@ async function loadPending() {
         const caption = document.createElement("span");
         image.src = src;
         image.alt = "Landsat imagery near " + label;
-        caption.textContent = label.replace(", ", "\n");
+        caption.textContent = label;
         tile.append(image, caption);
         return tile;
       }));
