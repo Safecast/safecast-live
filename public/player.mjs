@@ -1,10 +1,12 @@
+import { showLocations } from "./field-recorder.mjs";
 const play = document.querySelector("#play");
-const pack = document.querySelector("#pack");
+const pack = document.querySelector('[aria-label="Sound pack"]');
 const volume = document.querySelector("#volume");
 const reverb = document.querySelector("#reverb");
 const echo = document.querySelector("#echo");
-const routing = document.querySelector("#routing");
-const killDry = document.querySelector("#kill-dry");
+const routing = document.querySelector('[aria-label="Effects order"]');
+const mix = document.querySelector("#mix");
+const level = (control) => Number(control.value) / 100;
 const captureLoop = document.querySelector("#capture-loop");
 const loopLevel = document.querySelector("#loop-level");
 const clearLoop = document.querySelector("#clear-loop");
@@ -20,6 +22,9 @@ let impulse;
 function createEffects() {
   const input = context.createGain();
   const dry = context.createGain();
+  const wet = context.createGain();
+  wet.connect(gain);
+  wet.gain.value = 1 - level(mix);
   const room = context.createConvolver();
   const reverbLevel = context.createGain();
   const delay = context.createDelay();
@@ -40,13 +45,13 @@ function createEffects() {
   room.buffer = impulse;
   delay.delayTime.value = 0.65;
   feedback.gain.value = 0.45;
-  reverbLevel.gain.value = Number(reverb.value) * 0.6;
-  echoLevel.gain.value = Number(echo.value) * 0.45;
+  reverbLevel.gain.value = level(reverb) * 0.6;
+  echoLevel.gain.value = level(echo) * 0.45;
 
-  dry.gain.value = killDry.checked ? 0 : 1;
+  dry.gain.value = level(mix);
   input.connect(dry).connect(gain);
-  input.connect(room).connect(reverbLevel).connect(gain);
-  input.connect(delay).connect(echoLevel).connect(gain);
+  input.connect(room).connect(reverbLevel).connect(wet);
+  input.connect(delay).connect(echoLevel).connect(wet);
   delay.connect(feedback).connect(delay);
 
   let route;
@@ -54,7 +59,7 @@ function createEffects() {
     if (route === "echo-reverb") echoLevel.disconnect(room);
     if (route === "reverb-echo") reverbLevel.disconnect(delay);
 
-    route = routing.value;
+    route = selected(routing);
     if (route === "echo-reverb") echoLevel.connect(room);
     if (route === "reverb-echo") reverbLevel.connect(delay);
   }
@@ -63,11 +68,12 @@ function createEffects() {
   return {
     input,
     dry,
+    wet,
     setRouting,
     reverbLevel,
     echoLevel,
     disconnect() {
-      for (const node of [input, dry, room, reverbLevel, delay, feedback, echoLevel]) {
+      for (const node of [input, dry, wet, room, reverbLevel, delay, feedback, echoLevel]) {
         node.disconnect();
       }
     }
@@ -136,7 +142,7 @@ captureLoop.onclick = () => {
     pack, id, buffer, offset: time - (now - loopSeconds)
   }));
   const layer = { gain: context.createGain(), voices: new Set() };
-  layer.gain.gain.value = Number(loopLevel.value);
+  layer.gain.gain.value = level(loopLevel);
   layer.gain.connect(active.effects.input);
   active.layer = layer;
   clearLoop.disabled = false;
@@ -176,7 +182,7 @@ captureLoop.onclick = () => {
 
 clearLoop.onclick = clearLayer;
 loopLevel.oninput = () => {
-  session?.layer?.gain.gain.setTargetAtTime(Number(loopLevel.value), context.currentTime, 0.03);
+  session?.layer?.gain.gain.setTargetAtTime(level(loopLevel), context.currentTime, 0.03);
 };
 
 function stop() {
@@ -190,7 +196,7 @@ function stop() {
     if (navigator.audioSession) navigator.audioSession.type = "auto";
   }
   captureLoop.disabled = true;
-  play.textContent = "Listen";
+  play.textContent = "Play";
   status.textContent = "Paused";
 }
 
@@ -201,9 +207,9 @@ async function start() {
   session = active;
   play.textContent = "Pause";
   status.textContent = "Loading sound pack…";
-  const names = pack.value === "all"
-    ? Array.from(pack.options, (option) => option.value).filter((name) => name !== "all")
-    : [pack.value];
+  const names = selected(pack) === "all"
+    ? Array.from(pack.querySelectorAll("button"), (option) => option.dataset.value).filter((name) => name !== "all")
+    : [selected(pack)];
   try {
     const AudioContextClass = window.AudioContext ?? window.webkitAudioContext;
     if (navigator.audioSession) navigator.audioSession.type = "playback";
@@ -217,7 +223,7 @@ async function start() {
     context = undefined;
     gain = undefined;
     impulse = undefined;
-    status.textContent = "Could not start browser audio. Tap Listen to retry.";
+    status.textContent = "Could not start browser audio. Tap Play to retry.";
     return;
   }
 
@@ -227,14 +233,14 @@ async function start() {
       gain = context.createGain();
       gain.connect(context.destination);
     }
-    gain.gain.value = Number(volume.value);
+    gain.gain.value = level(volume);
     active.effects = createEffects();
     packs = await loadPacks(names, signal, context);
     if (signal.aborted) return;
   } catch {
     if (signal.aborted) return;
     stop();
-    status.textContent = "Could not load this sound pack. Press Listen to retry.";
+    status.textContent = "Could not load this sound pack. Press Play to retry.";
     return;
   }
   let cursor = null;
@@ -243,13 +249,14 @@ async function start() {
     if (signal.aborted) return;
     if (context.state !== "running") {
       stop();
-      status.textContent = "Browser audio interrupted. Tap Listen to resume.";
+      status.textContent = "Browser audio interrupted. Tap Play to resume.";
       return;
     }
     try {
       const batch = await readEvents(cursor, signal);
       if (signal.aborted) return;
       cursor = batch.cursor;
+      showLocations(batch.locations ?? []);
       for (const id of batch.events.flat().slice(-16)) {
         if (active.voices.size >= 24) break;
         const source = context.createBufferSource();
@@ -278,17 +285,40 @@ async function start() {
 }
 
 play.onclick = () => session ? stop() : void start();
-pack.onchange = () => { if (session) void start(); };
-volume.oninput = () => { if (gain) gain.gain.value = Number(volume.value); };
+
+volume.oninput = () => { if (gain) gain.gain.value = level(volume); };
 
 reverb.oninput = () => {
-  session?.effects?.reverbLevel.gain.setTargetAtTime(Number(reverb.value) * 0.6, context.currentTime, 0.03);
+  session?.effects?.reverbLevel.gain.setTargetAtTime(level(reverb) * 0.6, context.currentTime, 0.03);
 };
 echo.oninput = () => {
-  session?.effects?.echoLevel.gain.setTargetAtTime(Number(echo.value) * 0.45, context.currentTime, 0.03);
+  session?.effects?.echoLevel.gain.setTargetAtTime(level(echo) * 0.45, context.currentTime, 0.03);
 };
 
-routing.onchange = () => session?.effects?.setRouting();
-killDry.onchange = () => {
-  session?.effects?.dry.gain.setTargetAtTime(killDry.checked ? 0 : 1, context.currentTime, 0.01);
+
+function selected(group) {
+  return group.querySelector('[aria-pressed="true"]').dataset.value;
+}
+for (const group of [pack, routing, document.querySelector('[aria-label="Project details"]')]) {
+  const buttons = [...group.querySelectorAll("button")];
+  buttons.forEach((button, index) => button.onclick = () => {
+    if (button.getAttribute("aria-pressed") === "true") return;
+    buttons.forEach((item) => item.setAttribute("aria-pressed", String(item === button)));
+    if (group === pack && session) void start();
+    if (group === routing) session?.effects?.setRouting();
+    group.parentElement.querySelectorAll(".plate-copy > .plate-panel")
+      .forEach((panel, i) => { panel.hidden = i !== index; });
+  });
+}
+for (const input of document.querySelectorAll(".dial input")) {
+  input.addEventListener("input", () => {
+    const dial = input.closest(".dial");
+    dial.querySelector(".wheel").style.setProperty("--angle", (input.value * 2.7 - 135) + "deg");
+    dial.querySelector("output").value = input.value.padStart(3, "0");
+  });
+}
+mix.oninput = () => {
+  mix.setAttribute("aria-valuetext", (100 - Number(mix.value)) + "% wet, " + mix.value + "% dry");
+  session?.effects?.dry.gain.setTargetAtTime(level(mix), context.currentTime, 0.01);
+  session?.effects?.wet.gain.setTargetAtTime(1 - level(mix), context.currentTime, 0.01);
 };

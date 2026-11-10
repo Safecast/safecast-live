@@ -76,6 +76,7 @@ async function events(request, env) {
       "SELECT seq, payload FROM events WHERE seq > ? ORDER BY seq LIMIT 64"
     ).bind(Number(after)).all();
     const events = [];
+    const locations = [];
     for (const row of results) {
       const event = JSON.parse(row.payload);
       if (event.event.startsWith("setup-test-") || event.event.startsWith("load-test-")) continue;
@@ -87,8 +88,15 @@ async function events(request, env) {
         samples.push(key === "cpm" ? sample("rad", value, 20, 50) : sample("air", value, 0, 10));
       }
       if (samples.length) events.push(samples);
+      const lat = event.where_lat ?? (event.where_when > 0 ? 0 : undefined);
+      const lon = event.where_lon ?? (event.where_when > 0 ? 0 : undefined);
+      if (samples.length && Number.isFinite(lat) && Number.isFinite(lon)
+          && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
+          && (event.where_when > 0 || lat !== 0 || lon !== 0)) {
+        locations.push({ lat, lon });
+      }
     }
-    return Response.json({ cursor: results.at(-1)?.seq ?? Number(after), events }, { headers });
+    return Response.json({ cursor: results.at(-1)?.seq ?? Number(after), events, locations }, { headers });
   } catch {
     return reply(503);
   }
