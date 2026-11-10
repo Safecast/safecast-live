@@ -1,4 +1,4 @@
-import { showLocations, preloadLocation } from "./field-recorder.mjs?v=caption";
+import { showLocations, preloadLocation } from "./field-recorder.mjs?v=shift";
 const play = document.querySelector("#play");
 const pack = document.querySelector('[aria-label="Sound pack"]');
 const volume = document.querySelector("#volume");

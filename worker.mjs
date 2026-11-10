@@ -79,7 +79,7 @@ function reading(row) {
   const located = Number.isFinite(lat) && Number.isFinite(lon)
     && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
     && (event.where_when > 0 || lat !== 0 || lon !== 0);
-  return { at: row.accepted_at, samples, location: located ? { lat, lon } : null };
+  return { at: row.accepted_at, samples, location: located ? { lat, lon, samples } : null };
 }
 
 async function events(request, env) {
