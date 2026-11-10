@@ -109,7 +109,7 @@ async function loadPending() {
       if (!loaded.some(Boolean)) continue;
       gps.textContent = frames.at(-1).label;
       gps.style.color = gps.style.color === "white" ? "black" : "white";
-      sheet.replaceChildren(...frames.slice().reverse().map(({ label, src }) => {
+      sheet.replaceChildren(...frames.slice(-6).reverse().map(({ label, src }) => {
         const tile = document.createElement("li");
         const image = document.createElement("img");
         const caption = document.createElement("span");
