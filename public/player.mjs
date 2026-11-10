@@ -206,6 +206,8 @@ async function start() {
   const { signal } = active.controller;
   session = active;
   play.textContent = "Pause";
+  const gps = document.querySelector(".gps");
+  if (gps.textContent === "[ press to start ]") gps.textContent = "Waiting for location";
   status.textContent = "Loading sound pack…";
   const names = selected(pack) === "all"
     ? Array.from(pack.querySelectorAll("button"), (option) => option.dataset.value).filter((name) => name !== "all")
