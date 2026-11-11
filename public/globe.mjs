@@ -291,14 +291,14 @@ function drawCurrent(now, { cx, cy, radius, unit, width, ratio }) {
   const room = width - textX - 10 * unit;
   const spacing = "letterSpacing" in context;
   if (spacing) context.letterSpacing = `${Math.round(1.5 * unit)}px`;
-  let titleSize = Math.max(11 * ratio, Math.round(16 * unit));
+  let titleSize = Math.max(10 * ratio, Math.round(13 * unit));
   context.font = `${titleSize}px ${font}`;
   const titleWidth = context.measureText(current.lines[0]).width;
   if (titleWidth > room) {
     titleSize = Math.max(9 * ratio, Math.floor(titleSize * room / titleWidth));
     context.font = `${titleSize}px ${font}`;
   }
-  const detailSize = Math.max(9 * ratio, Math.round(titleSize * 0.8));
+  const detailSize = Math.max(9 * ratio, Math.round(titleSize * 0.85));
   const ruleY = Math.max(titleSize + 8 * unit, Math.min(point.y - 40 * unit, cy - radius * 0.35));
   const elbow = { x: point.x + Math.max(12 * unit, (point.y - ruleY) * 0.7), y: ruleY };
   const end = { x: textX + Math.min(room, Math.max(titleWidth, room * 0.6)), y: ruleY };
