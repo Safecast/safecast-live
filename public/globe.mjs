@@ -254,7 +254,7 @@ function draw(now) {
 }
 
 function drawPrompt({ cx, height, unit, ratio }) {
-  const text = gps.textContent.trim().toUpperCase();
+  const text = gps.textContent.trim();
   if (!text) return;
   context.font = `${Math.max(10 * ratio, Math.round(14 * unit))}px ${font}`;
   context.textAlign = "center";
