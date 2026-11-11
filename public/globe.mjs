@@ -5,6 +5,8 @@ const art = document.querySelector(".art");
 const canvas = art.querySelector("canvas.globe");
 const gps = art.querySelector(".gps");
 const context = canvas.getContext("2d");
+const layer = document.createElement("canvas");
+const pen = layer.getContext("2d");
 
 const phosphor = "224,224,214";
 const background = "11,11,10";
@@ -21,7 +23,7 @@ const typeMs = 28; // per character, for the terminal-style label reveal
 // so a late frame jumps ahead rather than slowing down.
 const frameMs = 1000 / 14;
 const hitchChance = 0.04;
-const slipChance = 0.03;
+const slipChance = 0.002;
 
 const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 let visible = false;
@@ -34,6 +36,7 @@ let data;
 let ready = false;
 const graticule = buildGraticule();
 const view = { lon: -140, lat: 20 };
+const shown = { ...view }; // the rotation the globe was last drawn at
 let turn = null; // { from, to, start }
 let current = null; // the reading being presented
 const queue = [];
@@ -178,9 +181,9 @@ function advance(now, seconds) {
 
 function project(lon, lat, cx, cy, radius) {
   const rad = Math.PI / 180;
-  const l = (lon - view.lon) * rad;
+  const l = (lon - shown.lon) * rad;
   const p = lat * rad;
-  const p0 = view.lat * rad;
+  const p0 = shown.lat * rad;
   const cosP = Math.cos(p);
   return {
     x: cx + radius * cosP * Math.sin(l),
@@ -190,7 +193,7 @@ function project(lon, lat, cx, cy, radius) {
 }
 
 function strokeLines(lines, cx, cy, radius) {
-  context.beginPath();
+  pen.beginPath();
   for (const line of lines) {
     let drawing = false;
     for (const [lon, lat] of line) {
@@ -199,50 +202,66 @@ function strokeLines(lines, cx, cy, radius) {
         drawing = false;
         continue;
       }
-      if (drawing) context.lineTo(point.x, point.y);
-      else context.moveTo(point.x, point.y);
+      if (drawing) pen.lineTo(point.x, point.y);
+      else pen.moveTo(point.x, point.y);
       drawing = true;
     }
   }
-  context.stroke();
+  pen.stroke();
 }
 
-function draw(now, slip = 0) {
+// The globe is drawn into its own layer only on its uneven frames; the marker and
+// label are drawn over it every frame so they stay smooth.
+function draw(now, redraw, slip = 0) {
   const ratio = devicePixelRatio || 1;
   const width = Math.round(canvas.clientWidth * ratio);
   const height = Math.round(canvas.clientHeight * ratio);
   if (!width || !height) return;
   if (canvas.width !== width || canvas.height !== height) {
-    canvas.width = width;
-    canvas.height = height;
+    canvas.width = layer.width = width;
+    canvas.height = layer.height = height;
+    redraw = true;
   }
   const unit = height / 400;
   // The globe sits left of centre so the label has open screen to the right.
-  const cx = width * 0.36 + slip * unit;
+  const cx = width * 0.36;
   const cy = height / 2;
   const radius = height * 0.42;
   const layout = { cx, cy, radius, unit, width, height, ratio };
 
-  context.globalCompositeOperation = "source-over";
+  if (redraw) {
+    Object.assign(shown, view);
+    drawGlobe(cx + slip * unit, cy, radius, unit, width, height);
+  }
   context.shadowBlur = 0;
-  context.fillStyle = `rgb(${background})`;
-  context.fillRect(0, 0, width, height);
-
+  context.drawImage(layer, 0, 0);
   context.lineCap = context.lineJoin = "round";
   context.shadowColor = `rgba(${phosphor},0.9)`;
   context.shadowBlur = 4 * unit;
+  if (current) drawCurrent(now, layout);
+  else drawPrompt(layout);
+}
 
-  context.strokeStyle = `rgba(${phosphor},0.3)`;
-  context.lineWidth = Math.max(1, 0.6 * unit);
+function drawGlobe(cx, cy, radius, unit, width, height) {
+  pen.shadowBlur = 0;
+  pen.fillStyle = `rgb(${background})`;
+  pen.fillRect(0, 0, width, height);
+
+  pen.lineCap = pen.lineJoin = "round";
+  pen.shadowColor = `rgba(${phosphor},0.9)`;
+  pen.shadowBlur = 4 * unit;
+
+  pen.strokeStyle = `rgba(${phosphor},0.3)`;
+  pen.lineWidth = Math.max(1, 0.6 * unit);
   strokeLines(graticule, cx, cy, radius);
 
-  context.beginPath();
-  context.arc(cx, cy, radius, 0, Math.PI * 2);
-  context.strokeStyle = `rgba(${phosphor},0.7)`;
-  context.stroke();
+  pen.beginPath();
+  pen.arc(cx, cy, radius, 0, Math.PI * 2);
+  pen.strokeStyle = `rgba(${phosphor},0.7)`;
+  pen.stroke();
 
-  context.strokeStyle = `rgba(${phosphor},1)`;
-  context.lineWidth = Math.max(1, 0.9 * unit);
+  pen.strokeStyle = `rgba(${phosphor},1)`;
+  pen.lineWidth = Math.max(1, 0.9 * unit);
   strokeLines(coast, cx, cy, radius);
 
   const time = Date.now();
@@ -252,12 +271,9 @@ function draw(now, slip = 0) {
     const point = project(mark.lon, mark.lat, cx, cy, radius);
     if (point.front <= 0) continue;
     const size = 2.4 * unit;
-    context.fillStyle = `rgba(${phosphor},${0.8 * (1 - age)})`;
-    context.fillRect(point.x - size / 2, point.y - size / 2, size, size);
+    pen.fillStyle = `rgba(${phosphor},${0.8 * (1 - age)})`;
+    pen.fillRect(point.x - size / 2, point.y - size / 2, size, size);
   }
-
-  if (current) drawCurrent(now, layout);
-  else drawPrompt(layout);
 }
 
 function drawPrompt({ cx, height, unit, ratio }) {
@@ -349,11 +365,14 @@ function tick(now) {
   const seconds = Math.min(0.1, (now - last) / 1000);
   last = now;
   advance(now, seconds);
-  if (still()) draw(now);
-  else if (now >= nextDraw) {
+  let redraw = still();
+  let slip = 0;
+  if (!redraw && now >= nextDraw) {
     const hitch = Math.random() < hitchChance;
     nextDraw = now + (hitch ? 180 + Math.random() * 260 : frameMs * (0.7 + Math.random() * 0.7));
-    draw(now, Math.random() < slipChance ? (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 4) : 0);
+    redraw = true;
+    if (Math.random() < slipChance) slip = (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 4);
   }
+  draw(now, redraw, slip);
   frame = requestAnimationFrame(tick);
 }
