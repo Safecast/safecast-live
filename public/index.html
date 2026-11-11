@@ -2,9 +2,10 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Safecast Live v2.0</title>
 <style>
 body{margin:0;background:#0b0b0a}
+body::before{content:"";position:fixed;inset:0;z-index:-1;background:url(/texture.jpg) center/100% 100% no-repeat;opacity:.02;pointer-events:none}
 #sc-terminal{max-width:1200px;margin:auto}
 #sc-terminal #status{text-transform:lowercase}
-#sc-terminal .terminal{box-sizing:border-box;background:#0b0b0a;color:#c8c8be;font:14px/1.55 "Courier New",Courier,monospace;padding:24px clamp(12px,3vw,32px);color-scheme:dark}
+#sc-terminal .terminal{box-sizing:border-box;background:transparent;color:#c8c8be;font:14px/1.55 "Courier New",Courier,monospace;padding:24px clamp(12px,3vw,32px);color-scheme:dark}
 #sc-terminal .terminal [hidden]{display:none!important}
 #sc-terminal header,#sc-terminal .switches,#sc-terminal .knobs{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px}
 #sc-terminal header{justify-content:space-between;margin:0 0 14px}
