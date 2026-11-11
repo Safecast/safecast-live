@@ -1,5 +1,6 @@
+import { showOnGlobe, setGlobeVisible } from "./globe.mjs?v=globe";
 const art = document.querySelector(".art");
-const canvas = art.querySelector("canvas");
+const canvas = art.querySelector("canvas:not(.globe)");
 const gps = art.querySelector(".gps");
 const sheet = art.querySelector(".sheet");
 const context = canvas.getContext("2d");
@@ -17,9 +18,11 @@ let animation;
 
 for (const button of document.querySelectorAll("[data-view]")) {
   button.onclick = () => {
-    const showSheet = button.dataset.view === "sheet";
-    canvas.hidden = gps.hidden = showSheet;
-    sheet.hidden = !showSheet;
+    const view = button.dataset.view;
+    art.dataset.view = view;
+    canvas.hidden = gps.hidden = view !== "overlay";
+    sheet.hidden = view !== "sheet";
+    setGlobeVisible(view === "globe");
     for (const option of document.querySelectorAll("[data-view]")) {
       option.setAttribute("aria-pressed", String(option === button));
     }
@@ -153,6 +156,7 @@ function paint(now) {
 }
 
 export function showLocations(locations) {
+  showOnGlobe(locations);
   const distinct = new Map();
   for (const location of pending.concat(locations)) {
     const url = tileUrl(location.lat, location.lon);

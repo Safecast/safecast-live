@@ -67,9 +67,11 @@ function reading(row) {
   const event = JSON.parse(row.payload);
   if (event.event.startsWith("setup-test-") || event.event.startsWith("load-test-")) return null;
   const samples = [];
+  const values = {};
   for (const key of metrics) {
     const value = event.body[key];
     if (!Number.isFinite(value) || value < 0) continue;
+    values[key] = value;
     // Use the original common 20–50 CPM range as a starting point for Radnote.
     samples.push(key === "cpm" ? sample("rad", value, 20, 50) : sample("air", value, 0, 10));
   }
@@ -79,7 +81,7 @@ function reading(row) {
   const located = Number.isFinite(lat) && Number.isFinite(lon)
     && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
     && (event.where_when > 0 || lat !== 0 || lon !== 0);
-  return { at: row.accepted_at, samples, location: located ? { lat, lon, samples } : null };
+  return { at: row.accepted_at, samples, location: located ? { lat, lon, samples, values } : null };
 }
 
 async function events(request, env) {
