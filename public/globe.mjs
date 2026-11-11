@@ -16,11 +16,18 @@ const idleSpin = 6; // degrees per second when nothing new has arrived
 const driftSpin = 0.6; // degrees per second while a reading is shown
 const markLifeMs = 10 * 60 * 1000;
 const typeMs = 28; // per character, for the terminal-style label reveal
+// Redraws come at an uneven, low frame rate with the odd hitch and sideways slip,
+// like an old display struggling to keep up. The globe's motion runs on real time,
+// so a late frame jumps ahead rather than slowing down.
+const frameMs = 1000 / 14;
+const hitchChance = 0.04;
+const slipChance = 0.03;
 
 const still = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
 let visible = false;
 let frame;
 let last = 0;
+let nextDraw = 0;
 let coast = [];
 let cities = [];
 let data;
@@ -200,7 +207,7 @@ function strokeLines(lines, cx, cy, radius) {
   context.stroke();
 }
 
-function draw(now) {
+function draw(now, slip = 0) {
   const ratio = devicePixelRatio || 1;
   const width = Math.round(canvas.clientWidth * ratio);
   const height = Math.round(canvas.clientHeight * ratio);
@@ -211,7 +218,7 @@ function draw(now) {
   }
   const unit = height / 400;
   // The globe sits left of centre so the label has open screen to the right.
-  const cx = width * 0.36;
+  const cx = width * 0.36 + slip * unit;
   const cy = height / 2;
   const radius = height * 0.42;
   const layout = { cx, cy, radius, unit, width, height, ratio };
@@ -342,6 +349,11 @@ function tick(now) {
   const seconds = Math.min(0.1, (now - last) / 1000);
   last = now;
   advance(now, seconds);
-  draw(now);
+  if (still()) draw(now);
+  else if (now >= nextDraw) {
+    const hitch = Math.random() < hitchChance;
+    nextDraw = now + (hitch ? 180 + Math.random() * 260 : frameMs * (0.7 + Math.random() * 0.7));
+    draw(now, Math.random() < slipChance ? (Math.random() < 0.5 ? -1 : 1) * (2 + Math.random() * 4) : 0);
+  }
   frame = requestAnimationFrame(tick);
 }
