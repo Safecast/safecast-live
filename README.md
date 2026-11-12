@@ -1,6 +1,6 @@
 # Safecast Live
 
-Safecast Live revives [safestream](https://github.com/Safecast/safestream), the project behind the original [Safecast Live](https://safecast.org/safecast-live/) (v1.0, 2021, now deprecated).
+Safecast Live revives [safestream](https://github.com/Safecast/safestream), the project behind the original [Safecast Live](https://safecast.org/safecast-live/) (v1.0, 2021). The original page is preserved as it was at [safecast.live/v1/](https://safecast.live/v1/), running on the current feed through a small adapter; its Share feature is retired.
 
 It turns incoming Safecast radiation and air quality readings into sound. Each reading triggers a sample from a selected sound pack, creating an evolving composition shaped by what the sensors report and when their readings arrive. Each reading's location is shown as grayscale Landsat imagery of the surrounding area.
 
@@ -58,6 +58,7 @@ All samples are MP3, 44.1 kHz, stored in `public/audio/<pack>/`.
 | `public/globe.mjs` | The 3D globe view |
 | `public/globe/` | Natural Earth coastline (1:110m) and populated places (1:10m), trimmed to compact JSON |
 | `public/audio/` | Sound packs |
+| `public/v1/` | The original 2021 page, samples and images, kept as they were |
 | `older-work/` | Design explorations from development |
 
 ## Deploying
