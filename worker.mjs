@@ -81,7 +81,8 @@ function reading(row) {
   const located = Number.isFinite(lat) && Number.isFinite(lon)
     && Math.abs(lat) <= 90 && Math.abs(lon) <= 180
     && (event.where_when > 0 || lat !== 0 || lon !== 0);
-  return { at: row.accepted_at, samples, location: located ? { lat, lon, samples, values } : null };
+  const location = located ? { lat, lon, samples, values } : null;
+  return { at: row.accepted_at, samples, values, location };
 }
 
 async function events(request, env) {
@@ -100,7 +101,7 @@ async function events(request, env) {
       return Response.json({
         cursor: results[0]?.seq ?? 0,
         now: Date.now(),
-        events: latest ? [{ at: latest.at, samples: latest.samples }] : [],
+        events: latest ? [{ at: latest.at, samples: latest.samples, values: latest.values, location: latest.location }] : [],
         locations: location ? [location] : []
       }, { headers });
     }
@@ -113,7 +114,7 @@ async function events(request, env) {
     for (const row of results) {
       const item = reading(row);
       if (!item) continue;
-      events.push({ at: item.at, samples: item.samples });
+      events.push({ at: item.at, samples: item.samples, values: item.values, location: item.location });
       if (item.location) locations.push(item.location);
     }
     return Response.json({ cursor: results.at(-1)?.seq ?? Number(after), now: Date.now(), events, locations }, { headers });

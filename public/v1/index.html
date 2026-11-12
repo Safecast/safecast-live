@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>SAFECAST LIVE</title>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+
+	<!-- Open Graph tags -->
+	<meta property="og:title" content="SAFECAST LIVE" />
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://safecast.live/v1/" />
+	<meta property="og:image" content="https://safecast.live/v1/ogimage.png" />
+	<meta property="og:description" content="Listen to endlessly evolving audio driven by environmental monitors."/>
+	<meta property="og:site_name" content="Safecast" />
+
+	<style type="text/css">
+		body {
+			margin: 0;
+			background-color: rgb(0, 4, 0);
+			overflow-x: hidden;
+			overflow-y: hidden;
+		}
+
+		#mapContainer {
+			display: none;
+			z-index: 0;
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		#mapImg, #mapCvs {
+			position: absolute;
+			top: 0;
+			left: 0;
+		}
+
+		#mapImg {
+			z-index: 0;
+		}
+
+		#mapCvs {
+			z-index: 256;
+		}
+
+		#txtCvs {
+			z-index: 1024;
+		}
+
+		#header, #output, #footer, #spacer {
+			display: none;
+			position: absolute;
+			top: -100px;
+		}
+
+		#navigation {
+			position: absolute;
+			top: 0;
+			left: 45px;
+			background-color: rgba(0, 32, 0, 0.8);
+			color: white;
+			z-index: 2048;
+		}
+
+		#brandingCvs {
+			position: fixed;
+			left: 0;
+			top: 0;
+		}
+
+		#showCvs {
+			position: fixed;
+			top: 0;
+			left: 44px;
+			z-index: 256;
+		}
+
+		#txtCvs {
+			position: fixed;
+			top: 0;
+			left: 44px;
+			z-index: 512;
+		}
+		#menu {
+			position: fixed;
+			top: 0;
+			left: 44;
+			z-index: 768;
+		}
+		#samples {
+			position: fixed;
+			bottom: 0;
+			right: 0;
+			z-index: 768;
+		}
+
+		.samplesLink {
+			position: fixed;
+			z-index: 1024;
+			right: 0;
+			display: block;
+			width: 200px;
+			color: rgba(0, 0, 0, 0);
+			background-color: rgba(0, 0, 0, 0);
+			height: 32px;
+		}
+
+		#samples_nin {
+			bottom: 96px;
+		}
+
+		#samples_sean {
+			bottom: 64px;
+		}
+
+		#samples_buchla {
+			bottom: 32px;
+		}
+
+		#samples_polivox {
+			bottom: 0;
+		}
+
+		#safecastLink {
+			position: fixed;
+			left: 0;
+			top: 0;
+			z-index: 1024;
+
+			display: block;
+			width: 44px;
+			height: 100vh;
+			
+			color: rgba(0, 0, 0, 0);
+			background-color: rgba(0, 0, 0, 0);
+			border: 0;
+		}
+
+		.menuItem {
+			position: fixed;
+			z-index: 1024;
+			left: 40px;
+			border: none;
+			display: block;
+			width: 400px;
+			outline: none;
+			color: rgba(0, 0, 0, 0);
+			background-color: rgba(0, 0, 0, 0);
+			height: 32px;
+		}
+
+		#play_btn {
+			top: 0;
+		}
+
+		#donate_link {
+			top: 32px;
+		}
+
+		#blues_link {
+			top: 64px;
+		}
+
+		#about_btn {
+			top: 96px;
+		}
+
+		#credits_btn {
+			top: 128px;
+		}
+
+		#share_btn {
+			top: 160px;
+		}
+
+		#explainer_img {
+			position: fixed;
+			left: calc((100% - 325px) / 2);
+			top: calc((100% - 200px) / 2);
+			z-index: 1024;
+		}
+
+		#credits_img {
+			position: fixed;
+			left: calc((100% - 452px) / 2);
+			top: calc((100% - 315px) / 2);
+			z-index: 1024;
+		}
+
+		#sharingCvs  {
+			position: fixed;
+			top: 0;
+			left: 0;
+		}
+
+		#sharingLink {
+			position: fixed;
+			bottom: 0;
+			right: 0;
+		}
+
+		.explainer {
+			position: fixed;
+			height: 100%;
+			width: 100%;
+			color: white;
+			background-color: black;
+			font-family: monospace;
+			font-size: 16px;
+			overflow-y: scroll;
+		}
+
+		.closer {
+			color: white;
+			background-color: black;
+			font-family: monospace;
+			font-size: 16px;
+		}
+
+		.explainer p {
+			max-width: 500px;
+		}
+	</style>
+</head>
+<body>
+	<noscript>This page requires Javascript to function</noscript>
+	<a id="safecastLink" href="https://safecast.org/" target="_blank">SAFECAST</a>
+	<div id="navigation">
+		<img id="menu" src="menu.png">
+		<button class="menuItem" id="play_btn">PLAY/PAUSE</button>
+		<a class="menuItem" id="donate_link" href="https://safecast.org/donate" target="_blank">DONATE TO SAFECAST</a>
+		<a class="menuItem" id="blues_link" href="https://blues.com" target="_blank">BLUES WIRELESS</a>
+		<button class="menuItem" id="about_btn" id="explainer">ABOUT</button>
+		<button class="menuItem" id="credits_btn">CREDITS</button>
+		<button class="menuItem" id="share_btn">SHARE</button>
+
+		<img id="samples" src="samples.png">
+		<a class="samplesLink" id="samples_nin" href="?collection=NIN">NIИ:GHOSTS</a>
+		<a class="samplesLink" id="samples_sean" href="?collection=sean">MICHELSONNE</a>
+		<a class="samplesLink" id="samples_buchla" href="?collection=buchla">BUCHLA EASEL</a>
+		<a class="samplesLink" id="samples_polivox" href="?collection=polivox">ПОЛИВОКС</a>
+	</div>
+	<div id="mapContainer">
+		<img src="map.png" id="mapImg" width="2048" height="1024">
+		<canvas id="mapCvs" width="2048" height="1024">Your browser doesn't support canvas.</canvas>
+		<!-- <canvas id="txtCvs" width="2048" height="1024">Your browser doesn't support canvas.</canvas> -->
+	</div>
+
+	<div id="actualMapContainer">
+		<canvas id="brandingCvs">Your browser doesn't support canvas.</canvas>
+		<canvas id="showCvs">Your browser doesn't support canvas.</canvas>
+		<div id="navigation">
+			
+		</div>
+		<canvas id="txtCvs">Your browser doesn't support canvas.</canvas>
+	</div>
+
+	<img id="explainer_img" src="explainer.png" style="display:none">
+	<img id="credits_img" src="credits.png" style="display:none">
+	<canvas id="sharingCvs" width="1" height="1" style="z-index: 0; display: none;"></canvas>
+	<a href="#" id="sharingLink" target="_blank" style="z-index: 0; display: none;">
+		<img src="linkcreated.png">
+	</a>
+
+	<div class="explainer" id="about" style="display: none;">
+		<button class="closer" id="close_about">CLOSE [X]</button>
+		<p>
+			With inspiration from <a href="http://listen.hatnote.com/" target="_blank">Listen To Wikipedia</a>, <a href="https://www.nytimes.com/2020/04/29/arts/music/brian-eno-ambient-songs.html" target="_blank">Brian Eno’s ambient works</a>, and <a href="https://en.wikipedia.org/wiki/Ghosts_I%E2%80%93IV" target="_blank">Nine Inch Nails Ghosts I-IV</a> - safecast.live uses the real time data stream coming in from Safecast’s global network of environmental sensors to trigger a random and ever evolving anti-pattern of audio samples.
+		</p>
+		<p>
+			Using hand held mobile sensors, in the 10 years since the 3/11 earthquake and nuclear meltdown at Fukushima Daiichi the non-profit organization Safecast has built the largest collection of background radiation measurements ever assembled and placed them entirely into the public domain. Over the last few years a growing network of Safecast designed and maintained sensors have begun to send in live radiation readings from around the world.	
+		</p>
+		<p>
+			Marking the 10 year anniversary of Safecast, Blues Wireless has designed a fleet of air quality sensors that will do the same, sending open data into Safecast’s system to be freely published out to the world. You are listening to that data stream right now, radiation measurements trigger some samples, air quality measurements trigger others. As these measurements are an ever changing random stream, so will this audio constantly evolve.	
+		</p>
+		 <pre>
+		 	
+
+
+
+
+
+
+
+		 </pre>
+	</div>
+
+	<div class="explainer" id="credits" style="display: none;">
+		<button class="closer" id="close_credits">CLOSE [X]</button>
+		<h3>Built by:</h3>
+		<p>
+			<a href="https://instagram.com/kethercortex" target="_blank">KETHER CORTEX</a> — Design, Development
+		</p>
+		<p>
+			<a href="https://safecast.org/team/ray-ozzie/" target="_blank">RAY OZZIE</a> — Development, concept
+		</p>
+		<p>
+			<a href="https://seanbonner.com" target="_blank">SEAN BONNER</a> — Audio Editing, Concept
+		</p>
+		
+		<h3>Audio by:</h3>
+		<p>
+			<a href="https://nin.com" target="_blank">NINE INCH NAILS</a> — Ghosts I-IV samples, used under CC
+		</p>
+			
+		<p>
+			<a href="https://www.hainbachmusik.com/" target="_blank">HAINBACH</a> — Michelsonne toy piano samples, used under CC
+		</p>
+
+		<p>
+			<a href="https://samplesfrommars.com/" target="_blank">SAMPLES FROM MARS</a> — Polivox synthesizer samples
+		</p>
+
+		<p>
+			<a href="https://seanbonner.com" target="_blank">SEAN BONNER</a> — Buchla music easel samples
+		</p>
+
+		 <pre>
+		 	
+
+
+
+
+
+
+
+		 </pre>
+	</div>
+	<div class="explainer" id="share_note" style="display: none;">
+		<button class="closer" id="close_share_note">CLOSE [X]</button>
+		<p>
+			SHARE/SAVE PICTURE has been deprecated and is no longer functional. In 2021 this button saved a snapshot of the screen to a public link.
+		</p>
+	</div>
+	<div id="header" hidden>One moment please, as we wait for the next Safecast event...</div>
+	<div id="output"></div>
+	<div id="footer">
+		<p><p>
+			<form>
+				
+					 <p><input id="input" type="text" value="">
+					 <button id="send">request</button>
+					 <p>
+				   
+				<button id="play" disabled>Listen to Event Stream</button>
+			</form>
+	</div>
+	<div id="spacer"><p style="color:white">##</p></div>
+	<script src="pmm.js"></script>
+</body>
+</html>
